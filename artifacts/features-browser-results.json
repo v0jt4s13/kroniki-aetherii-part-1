@@ -1,0 +1,19 @@
+{
+  "result": "passed",
+  "tests": [
+    "email registration",
+    "logout",
+    "new device login",
+    "room recovery",
+    "readable disabled builds",
+    "five card descriptions",
+    "turn popup",
+    "incoming trade popup",
+    "hidden tab title",
+    "system notification dispatch",
+    "no duplicate events",
+    "board bounds",
+    "320px and desktop"
+  ],
+  "errors": []
+}

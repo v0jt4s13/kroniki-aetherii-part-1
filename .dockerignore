@@ -1,0 +1,12 @@
+app/node_modules
+app/dist
+app/data
+artifacts
+.git
+.env
+app/.env
+.agents
+.aws
+.codex
+app/test-results
+app/playwright-report

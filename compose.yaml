@@ -1,0 +1,14 @@
+services:
+  catan:
+    build: .
+    ports:
+      - "4173:4173"
+    volumes:
+      - catan-data:/data
+    environment:
+      PUBLIC_URL: ${PUBLIC_URL:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+    restart: unless-stopped
+volumes:
+  catan-data:

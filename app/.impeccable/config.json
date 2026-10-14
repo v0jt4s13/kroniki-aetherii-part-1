@@ -1,0 +1,26 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "arial",
+        "files": [
+          "src/prototype.css"
+        ],
+        "createdAt": "2026-10-09T22:06:10.561Z",
+        "reason": "Agent review: Arial is used only for five-pixel probability dots on dice-number tokens, not interface typography. Main interface uses self-hosted Libre Baskerville and DM Sans; preserve intentional dot rendering."
+      },
+      {
+        "rule": "overused-font",
+        "value": "roboto",
+        "files": [
+          "src/styles.css"
+        ],
+        "createdAt": "2026-10-09T22:06:10.688Z",
+        "reason": "Agent review: Roboto is the platform-appropriate Android status-bar font in the protected Product Design mobile runtime. Template AGENTS.md requires preserving this calibrated platform chrome; this is not application branding."
+      }
+    ]
+  }
+}

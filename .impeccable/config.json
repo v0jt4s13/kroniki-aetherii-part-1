@@ -1,0 +1,26 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "arial",
+        "files": [
+          "app/src/prototype.css"
+        ],
+        "createdAt": "2026-10-09T22:15:22.156Z",
+        "reason": "Agent review: Arial renders only five-pixel probability dots on number tokens. Interface typography uses Libre Baskerville and DM Sans; preserve the intentional dot glyph rendering."
+      },
+      {
+        "rule": "overused-font",
+        "value": "roboto",
+        "files": [
+          "app/src/styles.css"
+        ],
+        "createdAt": "2026-10-11T19:41:26.653Z",
+        "reason": "Agent review: Roboto is the intentional Android Pixel 10 status-bar font. app/AGENTS.md explicitly requires preserving this calibrated typography in protected device chrome; it is not application branding."
+      }
+    ]
+  }
+}

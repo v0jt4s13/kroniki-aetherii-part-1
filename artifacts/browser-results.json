@@ -1,0 +1,22 @@
+{
+  "result": "passed",
+  "players": 4,
+  "code": "1C28B6",
+  "tests": [
+    "create room",
+    "invite link",
+    "join 4 independent contexts",
+    "snake setup via pointer",
+    "zoom",
+    "pan",
+    "touch pinch",
+    "cards panel",
+    "reload resumes identity",
+    "roll dice",
+    "turn sync",
+    "320px overflow",
+    "desktop",
+    "preserved template"
+  ],
+  "errors": []
+}

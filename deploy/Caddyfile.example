@@ -1,0 +1,4 @@
+# Replace with your own domain. Caddy manages TLS automatically.
+catan.example.com {
+    reverse_proxy 127.0.0.1:4173
+}

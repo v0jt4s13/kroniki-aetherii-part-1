@@ -1,0 +1,84 @@
+.native-game { margin:0; min-width:320px; background:#f5eddb; color:#173f30; }
+.native-game * { box-sizing:border-box; }
+.native-game #root { width:100%; min-height:100dvh; }
+.native-game h1,.native-game h2,.native-game p { margin:0; }
+.native-game button,.native-game input,.native-game select { font:inherit; }
+.native-game button { cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.native-game button:focus-visible,.native-game input:focus-visible,.native-game select:focus-visible { outline:2px solid #b56b30; outline-offset:2px; }
+.native-game .catan-scroll { overflow:visible; background:#f5eddb; padding-bottom:76px; }
+.native-game .catan-game { padding-top:env(safe-area-inset-top,0px); max-width:540px; margin:auto; padding-bottom:16px; }
+.native-game .game-header { height:89px; padding-top:5px; }
+.native-game .brand h1 { font-size:38px; }
+.native-game .brand>span { font-size:9px; }
+.native-game .players { padding:12px 12px 14px; min-height:65px; }
+.native-game .player strong { font-size:12px; max-width:75px; }
+.native-game .player i { width:17px; height:17px; }
+.native-game .player b { font-size:20px; }
+.native-game .player small { font-size:9px; }
+.native-game .board-viewport { height:clamp(330px,95vw,535px); }
+.native-game .board-world { width:110%; left:-5%; top:0; }
+.native-game .is-landing .board-viewport { height:315px; }
+.native-game .is-landing .board-world { width:100%; left:0; top:-9px; }
+.native-game .number-token { width:clamp(25px,7vw,33px); height:clamp(27px,7.5vw,35px); font-size:clamp(16px,4.4vw,21px); }
+.native-game .number-token small { font-size:6px; }
+.native-game .zoom-controls button { width:39px; height:39px; }
+.native-game .turn-panel { padding:10px 19px 0; }
+.native-game .turn-panel h2 { font-size:27px; margin-bottom:6px; }
+.native-game .turn-panel>p { font-size:13px; }
+.native-game .resources b { font-size:24px; }
+.native-game .resources span { font-size:12px; }
+.native-game .resource-art { height:42px; margin-top:12px; }
+.native-game .primary { min-height:48px; font-size:18px; }
+.native-game .game-nav { position:fixed; height:calc(66px + env(safe-area-inset-bottom,0px)); padding:7px 8px calc(7px + env(safe-area-inset-bottom,0px)); max-width:540px; margin:auto; }
+.native-game .game-nav span { font-size:11px; }
+.native-game .toast { position:fixed; bottom:85px; width:calc(100% - 28px); max-width:490px; margin:auto; }
+.native-sheet-overlay { position:fixed; inset:0; z-index:30; background:#12382775; }
+.native-sheet { position:fixed; z-index:31; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:540px; max-height:90dvh; background:#f8f0df; border-radius:20px 20px 0 0; box-shadow:0 -10px 40px #102f332b; padding:22px 20px calc(24px + env(safe-area-inset-bottom,0px)); overflow:auto; }
+.native-sheet-heading { padding:0 0 19px; }
+.native-sheet .sheet-title { margin:0; }
+.native-sheet .sheet-close { top:17px; }
+.native-game .error-message { margin-top:10px; }
+.native-game .game-sheet { gap:15px; }
+.native-game .bag-picker>div { min-height:47px; }
+.native-game .bag-picker button { height:40px; width:40px; }
+.native-game .settlement-piece { width:34px; height:34px; }
+.native-game .road-piece { height:32px; }
+.native-game .port { font-size:13px; }
+.native-game .game-nav>button { min-height:44px; }
+.native-game .room-tools { top:10px; }
+.native-game .share-button { width:36px; height:36px; }
+@media(max-width:360px) {
+  .native-game .brand { margin-right:38px; }
+  .native-game .brand h1 { font-size:34px; }
+  .native-game .brand>span { font-size:8px; letter-spacing:1.5px; }
+}
+@media(min-width:850px) {
+  .native-game .catan-game { display:grid; grid-template-columns:minmax(480px,700px) minmax(280px,360px); max-width:1120px; gap:0; margin:20px auto 0; padding:0 24px; }
+  .native-game .game-header { grid-column:1/-1; height:110px; background-size:cover; }
+  .native-game .brand h1 { font-size:61px; }
+  .native-game .brand>span { font-size:11px; }
+  .native-game .players { grid-column:1/-1; padding:18px 15%; }
+  .native-game .player strong { font-size:15px; max-width:130px; }
+  .native-game .player i { width:24px; height:24px; }
+  .native-game .player b { font-size:24px; }
+  .native-game .board-viewport { grid-column:1; height:610px; border-radius:12px 0 0 12px; }
+  .native-game .board-world { width:94%; left:3%; top:10px; }
+  .native-game .is-landing .board-viewport { height:610px; }
+  .native-game .is-landing .board-world { width:94%; left:3%; top:10px; }
+  .native-game .turn-panel { grid-column:2; padding:80px 22px 30px; border-left:1px solid #dacdb3; display:flex; flex-direction:column; justify-content:flex-start; }
+  .native-game .turn-panel>h2 { font-size:30px; }
+  .native-game .resources { margin-bottom:23px; }
+  .native-game .resource-art { margin-top:30px; }
+  .native-game .number-token { width:36px; height:38px; font-size:23px; }
+  .native-game .settlement-piece>svg { width:25px; height:25px; }
+  .native-game .road-piece>svg { width:44px; }
+  .native-game .port { font-size:16px; padding:5px; }
+  .native-game .port small { font-size:8px; }
+  .native-game .game-nav { max-width:1068px; border-radius:12px 12px 0 0; }
+  .native-game .game-nav>button { flex-direction:row; gap:9px; }
+  .native-game .game-nav span { font-size:15px; }
+  .native-game .game-nav>button.selected:after { left:28%; right:28%; }
+  .native-game .room-code { font-size:14px; padding:11px 16px; gap:10px; }
+  .native-game .share-button { width:44px; height:44px; }
+  .native-game .vacant-player { font-size:13px; }
+}

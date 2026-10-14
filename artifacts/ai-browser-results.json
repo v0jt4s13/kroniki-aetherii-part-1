@@ -1,0 +1,15 @@
+{
+  "result": "passed",
+  "players": 2,
+  "tests": [
+    "AI mode selection",
+    "human pointer setup",
+    "automatic AI setup",
+    "reload identity",
+    "human roll",
+    "automatic AI turn",
+    "history",
+    "320px overflow"
+  ],
+  "errors": []
+}
