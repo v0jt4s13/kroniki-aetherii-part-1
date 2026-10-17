@@ -6,7 +6,7 @@ mkdirSync('../artifacts', { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || '/opt/google/chrome/chrome', headless: true, args: ['--no-sandbox'] });
 const errors = [];
 const contexts = [];
-const base = process.env.CATAN_URL || 'http://127.0.0.1:4173';
+const base = process.env.AETHERII_URL || 'http://127.0.0.1:4173';
 async function pageFor(width = 393, height = 852) {
   const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1 }); contexts.push(context);
   const page = await context.newPage();

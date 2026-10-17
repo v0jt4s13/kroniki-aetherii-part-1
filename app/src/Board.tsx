@@ -50,7 +50,7 @@ export default function Board({ state, mode, choose, preview = false }: { state:
   const select = (type: string, id: number) => { if (Date.now() - movedAt.current > 180) choose(type, id); };
   const color = (id: string | null) => state.players.find(p => p.id === id)?.color || '#fff2d0';
   const legal = state.legal;
-  return <div className="board-viewport" ref={el} data-scroll-drag="ignore" aria-label="Plansza Catan. Przesuń jednym palcem, powiększ dwoma." onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onWheel={e => { if (e.ctrlKey || e.metaKey) setZoom(z => clamp(z - e.deltaY * 0.003)); }}>
+  return <div className="board-viewport" ref={el} data-scroll-drag="ignore" aria-label="Plansza Kroniki Aetherii. Przesuń jednym palcem, powiększ dwoma." onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onWheel={e => { if (e.ctrlKey || e.metaKey) setZoom(z => clamp(z - e.deltaY * 0.003)); }}>
     <div className="board-world" ref={world} style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }}>
       {state.board.tiles.map(t => <button key={t.id} type="button" className={`hex-tile ${mode === 'robber' && legal.robber.includes(t.id) ? 'selectable' : ''}`} style={{ left: `${t.x / 540 * 100}%`, top: `${t.y / 500 * 100}%` }} aria-label={`${t.resource === 'desert' ? 'Pustynia' : labels[t.resource]}, ${t.number || 'brak produkcji'}${t.id === state.robber ? ', złodziej' : ''}`} onClick={() => mode === 'robber' && legal.robber.includes(t.id) && select('robber', t.id)} tabIndex={mode === 'robber' && legal.robber.includes(t.id) ? 0 : -1}>
         <img src={`/game/${t.resource === 'wood' ? 'forest' : t.resource}.webp`} alt="" draggable={false}/>

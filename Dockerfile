@@ -6,7 +6,7 @@ COPY app/ ./
 RUN npm run build
 
 FROM node:22-alpine
-ENV NODE_ENV=production HOST=0.0.0.0 PORT=4173 CATAN_DATA_DIR=/data
+ENV NODE_ENV=production HOST=0.0.0.0 PORT=4173 AETHERII_DATA_DIR=/data
 WORKDIR /app
 COPY --from=build /app/dist/client ./dist/client
 COPY --from=build /app/server ./server

@@ -19,9 +19,9 @@ export default function Prototype() {
   const keyboard = useKeyboard();
   const initialCode = new URLSearchParams(location.search).get('room')?.toUpperCase() || '';
   const [code, setCode] = useState(initialCode);
-  const [token, setToken] = useState(() => initialCode ? localStorage.getItem(`catan:${initialCode}`) || '' : '');
+  const [token, setToken] = useState(() => initialCode ? localStorage.getItem(`aetherii:${initialCode}`) || '' : '');
   const [state, setState] = useState<State | null>(null), [preview, setPreview] = useState<State | null>(null);
-  const [name, setName] = useState(localStorage.getItem('catan:name') || '');
+  const [name, setName] = useState(localStorage.getItem('aetherii:name') || '');
   const [account, setAccount] = useState<Account>({ user: null, rooms: [], googleEnabled: false });
   const [ai, setAI] = useState(false);
   const [practice, setPractice] = useState(false), [busy, setBusy] = useState(false), [connected, setConnected] = useState(true);
@@ -70,20 +70,20 @@ export default function Prototype() {
     try {
       if (join && !/^[A-Z0-9]{6}$/.test(code)) throw new Error('Kod pokoju ma 6 znaków.');
       const result = await api(join ? `/api/rooms/${code}/join` : '/api/rooms', { name, practice, ai }, '');
-      localStorage.setItem(`catan:${result.state.code}`, result.token); localStorage.setItem('catan:name', name.trim());
+      localStorage.setItem(`aetherii:${result.state.code}`, result.token); localStorage.setItem('aetherii:name', name.trim());
       setCode(result.state.code); setToken(result.token); update(result.state); setPanel(null);
       history.replaceState({}, '', `?room=${result.state.code}`);
       setNotice(join ? 'Dołączono do pokoju.' : result.state.ai ? 'Gra z AI rozpoczęta. Wybierz pierwszą osadę.' : 'Pokój gotowy. Zaproś znajomych!');
     } catch (e) { setError((e as Error).message); } finally { setBusy(false); busyRef.current = false; }
   }
   function resumeAccount(result: { token: string; state: State }) {
-    localStorage.setItem(`catan:${result.state.code}`, result.token);
+    localStorage.setItem(`aetherii:${result.state.code}`, result.token);
     setCode(result.state.code); setToken(result.token); update(result.state); setPanel(null);
     history.replaceState({}, '', `?room=${result.state.code}`);
   }
   function refreshAccount(next: Account) { setAccount(next); if (next.user) setName(next.user.name); }
   function logoutAccount() {
-    for (const key of Object.keys(localStorage)) if (key.startsWith('catan:') && key !== 'catan:name') localStorage.removeItem(key);
+    for (const key of Object.keys(localStorage)) if (key.startsWith('aetherii:') && key !== 'aetherii:name') localStorage.removeItem(key);
     setToken(''); setCode(''); setState(null); setName(''); setAccount(a => ({ ...a, user: null, rooms: [] }));
     setPanel(null); history.replaceState({}, '', location.pathname);
   }
@@ -102,17 +102,17 @@ export default function Prototype() {
     try { await navigator.clipboard.writeText(link); setCopied(true); setTimeout(() => setCopied(false), 3000); } catch { setNotice('Zaznacz i skopiuj link poniżej.'); }
   }
   async function share() {
-    if (navigator.share) { try { await navigator.share({ title: 'Catan · Papierowa wyspa', text: 'Dołącz do naszej gry!', url: link }); } catch { open('invite'); } }
+    if (navigator.share) { try { await navigator.share({ title: 'Kroniki Aetherii · Korona i Cień', text: 'Dołącz do naszej gry!', url: link }); } catch { open('invite'); } }
     else open('invite');
   }
   const title = { account: 'Konto gracza', invite: 'Zaproś na wyspę', join: 'Dołącz do znajomych', trade: 'Przystań handlowa', build: 'Rozbuduj swoją wyspę', cards: 'Twoje karty rozwoju', history: 'Dziennik wyprawy', rules: 'Jak grać', discard: 'Oddaj część surowców', steal: 'Wybierz gracza', winner: 'Koniec wyprawy', confirm: target ? `Budujesz: ${names[target.type] || 'złodziej'}` : 'Potwierdź ruch' };
   const resourceChoice = (val: Resource, change: (r: Resource) => void, text: string) => <label className="select-label">{text}<select value={val} onChange={e => change(e.target.value as Resource)}>{resources.map(r => <option key={r} value={r}>{labels[r]}</option>)}</select></label>;
   const errorBox = error && <div role="alert" className="error-message">{error}<button aria-label="Zamknij komunikat" onClick={() => setError('')}><Cross2Icon/></button></div>;
   return <>
-    <MobileScroll className="catan-scroll">
-      <main className={`catan-game ${state ? 'is-playing' : 'is-landing'}${state?.ai ? ' is-ai' : ''}`} aria-label="Catan — Papierowa wyspa">
+    <MobileScroll className="aetherii-scroll">
+      <main className={`aetherii-game ${state ? 'is-playing' : 'is-landing'}${state?.ai ? ' is-ai' : ''}`} aria-label="Kroniki Aetherii — Korona i Cień">
         <div className="account-bar"><span>{account.user ? `Witaj, ${account.user.name}` : 'Graj jako gość lub zapisz grę na koncie'}</span><button className="text-button" onClick={() => open('account')}>{account.user ? 'Moje konto' : 'Zaloguj / załóż konto'}</button></div>
-        <header className="game-header"><div className="brand"><h1>Catan</h1><span>PAPIEROWA WYSPA</span></div><div className="room-tools">{state?.ai ? <button className="room-code" aria-label="Dziennik gry z AI" onClick={() => open('history')}>Ty + AI<TimerIcon/></button> : state ? <><button className="room-code" aria-label="Kod pokoju i link zaproszenia" onClick={() => open('invite')}>{state.code}<CopyIcon/></button><button className="share-button" aria-label="Udostępnij grę" onClick={share}><Share2Icon/></button></> : <button className="share-button" aria-label="Zasady gry" onClick={() => open('rules')}><InfoCircledIcon/></button>}</div></header>
+        <header className="game-header"><div className="brand"><h1>Kroniki Aetherii</h1><span>KORONA I CIEŃ</span></div><div className="room-tools">{state?.ai ? <button className="room-code" aria-label="Dziennik gry z AI" onClick={() => open('history')}>Ty + AI<TimerIcon/></button> : state ? <><button className="room-code" aria-label="Kod pokoju i link zaproszenia" onClick={() => open('invite')}>{state.code}<CopyIcon/></button><button className="share-button" aria-label="Udostępnij grę" onClick={share}><Share2Icon/></button></> : <button className="share-button" aria-label="Zasady gry" onClick={() => open('rules')}><InfoCircledIcon/></button>}</div></header>
         <section className="players" aria-label="Gracze">{(state?.players || preview?.players || []).map(p => <button className={`player ${state && current?.id === p.id && state.phase !== 'lobby' ? 'active-player' : ''}`} key={p.id} onClick={() => { setNotice(`${p.name} · ${p.resourceCount} surowców · ${p.cardCount} kart rozwoju · droga ${p.roadLength} · rycerze ${p.knights}`); }}><i style={{ backgroundColor: p.color }}/><span><strong>{p.name} {p.bot ? <small>(AI)</small> : state && p.id === state.me && <small>(Ty)</small>}</strong><b>{p.points} <small>pkt</small></b></span>{state?.longest === p.id && <DrawingPinIcon aria-label="Najdłuższa droga"/>}{state?.army === p.id && <BackpackIcon aria-label="Największa armia"/>}</button>)}{state?.phase === 'lobby' && Array.from({ length: state.maxPlayers - state.players.length }, (_, i) => <button key={i} className="player vacant-player" onClick={() => open('invite')}><PlusIcon/><span>Zaproś</span></button>)}</section>
         {!connected && token && <p className="connection-message" role="status"><ReloadIcon/> Ponawiam połączenie…</p>}
         {s ? <Board state={s} preview={!state} mode={effectiveMode} choose={(type, id) => { if (busy) return; if (type === 'robber') command('robber', { id }); else { setTarget({ type, id }); open('confirm'); } }}/> : <div className="board-loading"><ReloadIcon/> Przygotowuję wyspę…</div>}

@@ -19,16 +19,16 @@ export function createAccounts(path, config = process.env) {
   const googleEnabled = Boolean(config.GOOGLE_CLIENT_ID && config.GOOGLE_CLIENT_SECRET && config.PUBLIC_URL);
   const google = googleEnabled ? new OAuth2Client(config.GOOGLE_CLIENT_ID, config.GOOGLE_CLIENT_SECRET, `${config.PUBLIC_URL.replace(/\/$/, '')}/api/auth/google/callback`) : null;
   function session(req) {
-    const raw = cookies(req).catan_session; if (!raw) return null;
+    const raw = cookies(req).aetherii_session; if (!raw) return null;
     const s = db.sessions[digest(raw)];
     return s && s.expires > Date.now() ? db.users.find(u => u.id === s.userId) : null;
   }
   function issue(req, res, u) {
-    const old = cookies(req).catan_session; if (old) delete db.sessions[digest(old)];
+    const old = cookies(req).aetherii_session; if (old) delete db.sessions[digest(old)];
     for (const [id, s] of Object.entries(db.sessions)) if (s.expires < Date.now()) delete db.sessions[id];
     const raw = randomBytes(32).toString('hex');
     db.sessions[digest(raw)] = { userId: u.id, expires: Date.now() + 30 * 86400000 };
-    save(); res.setHeader('Set-Cookie', cookie('catan_session', raw, 30 * 86400));
+    save(); res.setHeader('Set-Cookie', cookie('aetherii_session', raw, 30 * 86400));
   }
   function throttle(req) {
     const ip = req.socket.remoteAddress, now = Date.now();
@@ -58,8 +58,8 @@ export function createAccounts(path, config = process.env) {
       issue(req, res, u); return u;
     },
     logout(req, res) {
-      const raw = cookies(req).catan_session; if (raw) delete db.sessions[digest(raw)];
-      save(); res.setHeader('Set-Cookie', cookie('catan_session', '', 0));
+      const raw = cookies(req).aetherii_session; if (raw) delete db.sessions[digest(raw)];
+      save(); res.setHeader('Set-Cookie', cookie('aetherii_session', '', 0));
     },
     googleStart(req, res, url) {
       if (!google) fail('Logowanie Google wymaga konfiguracji serwera.', 503);
@@ -68,16 +68,16 @@ export function createAccounts(path, config = process.env) {
       const state = randomBytes(32).toString('hex'), verifier = randomBytes(32).toString('base64url'), nonce = randomBytes(32).toString('hex');
       const room = /^[A-Z0-9]{6}$/.test(url.searchParams.get('room') || '') ? url.searchParams.get('room') : null;
       pending.set(state, { verifier, nonce, room, linkUserId: session(req)?.id, expires: Date.now() + 600000 });
-      res.setHeader('Set-Cookie', cookie('catan_oauth', state, 600));
+      res.setHeader('Set-Cookie', cookie('aetherii_oauth', state, 600));
       res.writeHead(302, { Location: google.generateAuthUrl({ scope: ['openid', 'email', 'profile'], state, nonce, code_challenge: createHash('sha256').update(verifier).digest('base64url'), code_challenge_method: 'S256', prompt: 'select_account' }), 'Cache-Control': 'no-store' }); res.end();
     },
     async googleFinish(req, res, url) {
       if (!google) fail('Logowanie Google wymaga konfiguracji serwera.', 503);
       const state = url.searchParams.get('state'), p = pending.get(state);
-      if (!p || p.expires < Date.now() || cookies(req).catan_oauth !== state) fail('Sesja Google wygasła. Rozpocznij logowanie ponownie.');
+      if (!p || p.expires < Date.now() || cookies(req).aetherii_oauth !== state) fail('Sesja Google wygasła. Rozpocznij logowanie ponownie.');
       pending.delete(state);
       const returnTo = p.room ? `/?room=${p.room}` : '/';
-      if (url.searchParams.has('error')) { res.writeHead(302, { Location: `${returnTo}${p.room ? '&' : '?'}auth=cancelled`, 'Set-Cookie': cookie('catan_oauth', '', 0) }); res.end(); return; }
+      if (url.searchParams.has('error')) { res.writeHead(302, { Location: `${returnTo}${p.room ? '&' : '?'}auth=cancelled`, 'Set-Cookie': cookie('aetherii_oauth', '', 0) }); res.end(); return; }
       const code = url.searchParams.get('code'); if (!code) fail('Brak kodu logowania Google.');
       const { tokens } = await google.getToken({ code, codeVerifier: p.verifier });
       const ticket = await google.verifyIdToken({ idToken: tokens.id_token, audience: config.GOOGLE_CLIENT_ID });
@@ -92,11 +92,11 @@ export function createAccounts(path, config = process.env) {
       }
       // Never link a password account using an unverified local email alone.
       if (!u && db.users.some(u => u.email === emailOf(claims.email))) {
-        res.writeHead(302, { Location: `${returnTo}${p.room ? '&' : '?'}auth=use-password`, 'Set-Cookie': cookie('catan_oauth', '', 0) }); res.end(); return;
+        res.writeHead(302, { Location: `${returnTo}${p.room ? '&' : '?'}auth=use-password`, 'Set-Cookie': cookie('aetherii_oauth', '', 0) }); res.end(); return;
       }
       if (!u) { u = { id: randomUUID(), name: (claims.name || claims.given_name || 'Gracz').slice(0, 24), email: emailOf(claims.email), googleId: claims.sub }; db.users.push(u); }
       issue(req, res, u);
-      res.setHeader('Set-Cookie', [res.getHeader('Set-Cookie'), cookie('catan_oauth', '', 0)]);
+      res.setHeader('Set-Cookie', [res.getHeader('Set-Cookie'), cookie('aetherii_oauth', '', 0)]);
       res.writeHead(302, { Location: returnTo, 'Cache-Control': 'no-store' }); res.end();
     },
   };

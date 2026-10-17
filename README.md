@@ -1,4 +1,4 @@
-# Catan · Papierowa wyspa
+# Kroniki Aetherii · Korona i Cień
 
 Gra przeglądarkowa po polsku, oparta na pierwszym projekcie Product Design: pergamin, ilustrowane tereny i zielone przyciski. Pełny widok gry działa na telefonie i komputerze; podgląd template’u mobilnego jest dostępny osobno pod `/?preview=1`.
 
@@ -57,7 +57,7 @@ npm run build
 npm start
 ```
 
-`PORT` (domyślnie `4173`), `HOST` (domyślnie `0.0.0.0`) i `CATAN_DATA_DIR` (domyślnie `app/data`) konfigurują serwer. Wystaw go za reverse proxy HTTPS i użyj jednego procesu aplikacji ze stałym katalogiem danych. Stan zapisuje się atomowo do `rooms.json`, a konta i sesje do `accounts.json`; nie uruchamiaj kilku replik na tych samych plikach. Zapis zawiera identyfikatory sesji graczy — nie publikuj katalogu danych. Gość traci klucz powrotu przy zmianie urządzenia lub usunięciu danych przeglądarki; konto pozwala odzyskać przypisaną grę po zalogowaniu. Dla produkcji ustaw `PUBLIC_URL` na adres HTTPS.
+`PORT` (domyślnie `4173`), `HOST` (domyślnie `0.0.0.0`) i `AETHERII_DATA_DIR` (domyślnie `app/data`) konfigurują serwer. Wystaw go za reverse proxy HTTPS i użyj jednego procesu aplikacji ze stałym katalogiem danych. Stan zapisuje się atomowo do `rooms.json`, a konta i sesje do `accounts.json`; nie uruchamiaj kilku replik na tych samych plikach. Zapis zawiera identyfikatory sesji graczy — nie publikuj katalogu danych. Gość traci klucz powrotu przy zmianie urządzenia lub usunięciu danych przeglądarki; konto pozwala odzyskać przypisaną grę po zalogowaniu. Dla produkcji ustaw `PUBLIC_URL` na adres HTTPS.
 
 Alternatywnie, z katalogu repozytorium:
 
@@ -65,7 +65,7 @@ Alternatywnie, z katalogu repozytorium:
 docker compose up --build -d
 ```
 
-Obraz uruchamia serwer produkcyjny na porcie 4173 i zapisuje stan w nazwanym wolumenie `catan-data`. Do publicznego udostępnienia skieruj swoją domenę HTTPS na ten port; przykładowy plik Caddy znajduje się w `deploy/Caddyfile.example`.
+Obraz uruchamia serwer produkcyjny na porcie 4173 i zapisuje stan w nazwanym wolumenie `aetherii-data`. Do publicznego udostępnienia skieruj swoją domenę HTTPS na ten port; przykładowy plik Caddy znajduje się w `deploy/Caddyfile.example`.
 
 ## Sprawdzenie
 
@@ -80,7 +80,7 @@ npm run test:ai-browser
 npm run test:features-browser
 ```
 
-Test przeglądarkowy wymaga Chrome (domyślnie `/opt/google/chrome/chrome`, zmienna `CHROME_PATH`) i działającego serwera (`CATAN_URL`, domyślnie `http://127.0.0.1:4173`). Tworzy osobny pokój testowy i cztery niezależne konteksty przeglądarki; sprawdza dołączanie, rozstawianie kliknięciami, powrót po odświeżeniu, przesuwanie i zoom, pierwszy rzut oraz zmianę tury. Zrzuty i wynik trafiają do `artifacts/`.
+Test przeglądarkowy wymaga Chrome (domyślnie `/opt/google/chrome/chrome`, zmienna `CHROME_PATH`) i działającego serwera (`AETHERII_URL`, domyślnie `http://127.0.0.1:4173`). Tworzy osobny pokój testowy i cztery niezależne konteksty przeglądarki; sprawdza dołączanie, rozstawianie kliknięciami, powrót po odświeżeniu, przesuwanie i zoom, pierwszy rzut oraz zmianę tury. Zrzuty i wynik trafiają do `artifacts/`.
 
 `test:ai-browser` sprawdza wybór trybu z AI na telefonie, rozstawianie obu stron, automatyczną turę komputera, powrót po odświeżeniu i dziennik. `npm test` obejmuje też pełne rozgrywki AI do 10 punktów, prywatność kart, handel, odrzucanie oraz wznowienie automatycznych ruchów po restarcie serwera.
 

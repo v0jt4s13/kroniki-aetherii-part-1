@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { createRoom, player, view } from '../server/engine.mjs';
 
 mkdirSync('../artifacts', { recursive: true });
-const base = process.env.CATAN_URL || 'http://127.0.0.1:4173';
+const base = process.env.AETHERII_URL || 'http://127.0.0.1:4173';
 const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || '/opt/google/chrome/chrome', headless: true, args: ['--no-sandbox'] });
 const errors = [];
 async function pageFor(width = 393, height = 852) {
@@ -45,7 +45,7 @@ try {
   g.phase = 'roll'; g.turn = 1; g.robber = g.board.tiles.find(t => t.resource === 'desert').id;
   g.players[0].cards = ['knight', 'roads', 'plenty', 'monopoly', 'point'].map((type, i) => ({ id: `card-${i}`, type, bought: 0 }));
   const eventPage = await pageFor();
-  await eventPage.addInitScript(() => { localStorage.setItem('catan:QA1234', 'fixture-token'); window.__notifications = []; class TestNotification { static permission = 'granted'; constructor(title, options) { window.__notifications.push({ title, ...options }); } close() {} } window.Notification = TestNotification; });
+  await eventPage.addInitScript(() => { localStorage.setItem('aetherii:QA1234', 'fixture-token'); window.__notifications = []; class TestNotification { static permission = 'granted'; constructor(title, options) { window.__notifications.push({ title, ...options }); } close() {} } window.Notification = TestNotification; });
   await eventPage.route('**/api/rooms/QA1234', route => route.fulfill({ json: view(g, g.host) }));
   await eventPage.goto(base + '/?room=QA1234');
   await eventPage.getByRole('alert', { name: 'Twój ruch', exact: true }).waitFor(); await closeAlert(eventPage);

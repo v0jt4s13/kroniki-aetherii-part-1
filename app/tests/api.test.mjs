@@ -7,12 +7,12 @@ import { join } from 'node:path';
 import http from 'node:http';
 
 test('API: capacity, identity, hidden hands, stale actions, atomic failures and persisted restart', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'catan-test-'));
+  const directory = mkdtempSync(join(tmpdir(), 'aetherii-test-'));
   const port = 14273, base = `http://127.0.0.1:${port}`;
   let proc;
   async function start() {
-    proc = spawn(process.execPath, ['server/start.mjs', '--production', '--host', '127.0.0.1', '--port', `${port}`], { cwd: process.cwd(), env: { ...process.env, CATAN_DATA_DIR: directory }, stdio: 'pipe' });
-    await new Promise((resolve, reject) => { proc.stdout.on('data', chunk => { if (chunk.toString().includes('Catan:')) resolve(); }); proc.on('error', reject); proc.on('exit', code => { if (code) reject(new Error(`Server exited ${code}`)); }); });
+    proc = spawn(process.execPath, ['server/start.mjs', '--production', '--host', '127.0.0.1', '--port', `${port}`], { cwd: process.cwd(), env: { ...process.env, AETHERII_DATA_DIR: directory }, stdio: 'pipe' });
+    await new Promise((resolve, reject) => { proc.stdout.on('data', chunk => { if (chunk.toString().includes('Kroniki Aetherii:')) resolve(); }); proc.on('error', reject); proc.on('exit', code => { if (code) reject(new Error(`Server exited ${code}`)); }); });
   }
   const stop = () => new Promise(resolve => { proc.once('exit', resolve); proc.kill('SIGTERM'); });
   async function request(path, body, token) {
@@ -55,7 +55,7 @@ test('API: capacity, identity, hidden hands, stale actions, atomic failures and 
     assert.equal(latest.board.vertices.filter(v => v.owner).length, 1);
     await stop(); await start();
     const restored = await request(path, undefined, token); assert.equal(restored.status, 200); assert.deepEqual(restored.body, latest);
-    const page = await fetch(base + '/'); assert.equal(page.status, 200); assert.ok((await page.text()).includes('Papierowa wyspa'));
+    const page = await fetch(base + '/'); assert.equal(page.status, 200); assert.ok((await page.text()).includes('Korona i Cień'));
     const asset = await fetch(base + '/game/forest.webp'); assert.equal(asset.status, 200); assert.equal(asset.headers.get('content-type'), 'image/webp');
     const forbidden = await fetch(base + path + '/action', { method: 'POST', headers: { Origin: 'http://evil.invalid', Authorization: `Bearer ${token}` }, body: '{}' }); assert.equal(forbidden.status, 403);
   } finally { await stop(); }

@@ -125,7 +125,7 @@ export function act(g, playerId, action, payload = {}, rng = randomInt) {
   check(g.phase !== 'finished', 'Gra już się zakończyła.');
   if (action === 'start') {
     check(g.phase === 'lobby' && g.host === p.id, 'Tylko gospodarz może rozpocząć grę.');
-    check(g.players.length >= (g.practice ? 2 : 3), g.practice ? 'Potrzeba co najmniej 2 graczy.' : 'Catan wymaga 3 lub 4 graczy.');
+    check(g.players.length >= (g.practice ? 2 : 3), g.practice ? 'Potrzeba co najmniej 2 graczy.' : 'Kroniki Aetherii wymagają 3 lub 4 graczy.');
     const snake = [...g.players.keys(), ...[...g.players.keys()].reverse()];
     g.setupOrder = g.players.length === 2 ? [...snake, ...snake] : snake; g.setupIndex = 0; g.active = 0;
     g.phase = 'setup-settlement'; g.robber = g.board.tiles.find(t => t.resource === 'desert').id;

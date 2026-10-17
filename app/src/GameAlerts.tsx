@@ -31,7 +31,7 @@ export default function GameAlerts({ state, trade }: { state: State | null; trad
   useEffect(() => {
     const original = document.title;
     if (!alerts.length) return;
-    const updateTitle = () => { document.title = document.hidden ? `${alerts.at(-1)!.title} · Catan` : original; };
+    const updateTitle = () => { document.title = document.hidden ? `${alerts.at(-1)!.title} · Kroniki Aetherii` : original; };
     updateTitle(); document.addEventListener('visibilitychange', updateTitle);
     return () => { document.title = original; document.removeEventListener('visibilitychange', updateTitle); };
   }, [alerts]);

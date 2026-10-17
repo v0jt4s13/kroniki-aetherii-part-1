@@ -78,3 +78,7 @@ When any text-entry control loses focus, dismiss the simulated keyboard. If the 
 - Fixed phone chrome should not animate with pushed screens. Screen content can animate; the status bar, camera cutout, and preview chrome should stay put.
 - Keep the keyboard below the home indicator/safe area layer in z-index, and above ordinary app UI while visible.
 - Keep the home indicator as the topmost safe-area layer in the z-index above everything else in the prototype.
+
+## Design preferences
+
+- Gra nazywa się „Kroniki Aetherii - Korona i Cień". Paleta jest mroczna (nocny granat `#14161f`, powierzchnie `#1b1e2b`/`#232739`, tekst pergaminowy `#e9e2d0`, akcent złoty `#c9a24b`/`#e2c06a`, główny przycisk karmazynowy `#6d2434`). Żetony liczb i tabliczki portów zostają pergaminowe, bo leżą na planszy.
