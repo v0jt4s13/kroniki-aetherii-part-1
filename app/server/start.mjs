@@ -3,21 +3,44 @@ import { randomBytes } from 'node:crypto';
 import { readFileSync, writeFileSync, mkdirSync, renameSync, existsSync } from 'node:fs';
 import { resolve, dirname, extname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createRoom, player, act, view } from './engine.mjs';
+import { createRoom, player, act, view, FACTIONS, RULES_VERSION } from './engine.mjs';
 import { nextBotMove } from './bot.mjs';
 import { createAccounts } from './accounts.mjs';
+import { publicBasePath } from './base-path.mjs';
+import { createTraffic } from './traffic.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 if (existsSync(resolve(root, '.env'))) process.loadEnvFile(resolve(root, '.env'));
 const production = process.argv.includes('--production');
+const basePath = publicBasePath();
 const arg = name => { const at = process.argv.indexOf(name); return at < 0 ? null : process.argv[at + 1]; };
 const port = Number(arg('--port') || process.env.PORT || 4173);
 const host = arg('--host') || process.env.HOST || '0.0.0.0';
 const dataDir = resolve(process.env.CATAN_DATA_DIR || resolve(root, 'data'));
 mkdirSync(dataDir, { recursive: true, mode: 0o700 });
 const dbPath = resolve(dataDir, 'rooms.json');
-const accounts = createAccounts(resolve(dataDir, 'accounts.json'));
+const traffic = createTraffic(resolve(dataDir, 'traffic.json'));
+const accounts = createAccounts(resolve(dataDir, 'accounts.json'), process.env, (req, res) => traffic.login(req, res));
 let rooms = existsSync(dbPath) ? JSON.parse(readFileSync(dbPath, 'utf8')) : {};
+// Keep a one-time backup before upgrading any saved game.
+if (Object.values(rooms).some(g => g.rulesVersion !== RULES_VERSION) && !existsSync(resolve(dataDir, 'rooms.pre-aetherii.json'))) {
+  writeFileSync(resolve(dataDir, 'rooms.pre-aetherii.json'), JSON.stringify(rooms), { mode: 0o600, flag: 'wx' });
+}
+// Upgrade saved games without touching accounts, player tokens or placed pieces.
+for (const g of Object.values(rooms)) if (g.rulesVersion !== RULES_VERSION) {
+  Object.assign(g, { rulesVersion: RULES_VERSION, threat: 0, raid: null, consecutiveDefeats: 0, penaltyUntil: 0, lastBattle: null, robber: null, longest: null, army: null });
+  g.players.forEach((p, i) => { p.faction = FACTIONS[i]; p.heroPoints = 0; p.cards.forEach(c => { if (c.type === 'knight') c.type = 'ward'; }); });
+  g.deck = g.deck.map(c => c === 'knight' ? 'ward' : c);
+  if (['robber', 'steal'].includes(g.phase)) g.phase = g.robberResume || 'main';
+  if (g.phase.startsWith('setup') && g.players.length === 2 && g.setupIndex < 4) g.setupOrder = [0, 1, 1, 0];
+  g.revision++;
+}
+const assignFaction = (g, p, requested) => {
+  const available = FACTIONS.filter(f => !g.players.some(x => x.id !== p.id && x.faction === f));
+  if (requested !== undefined && !FACTIONS.includes(requested)) throw new Error('Nieznana frakcja.');
+  // Join links may carry an already chosen faction; use the first free faction in that case.
+  p.faction = available.includes(requested) ? requested : available.includes(p.faction) ? p.faction : available[0];
+};
 const save = () => { writeFileSync(`${dbPath}.tmp`, JSON.stringify(rooms), { mode: 0o600 }); renameSync(`${dbPath}.tmp`, dbPath); };
 // Timed server-side actions survive reloads and server restarts. No bot token is
 // issued to a browser, and all moves go through the same rules as human moves.
@@ -43,7 +66,7 @@ const limiter = new Map();
 const timer = setInterval(() => limiter.clear(), 60000); timer.unref();
 const demo = createRoom('WYSPA7', 'Ala');
 ['Bartek', 'Celina', 'Dawid'].forEach((name, i) => demo.players.push(player(name, i + 1)));
-demo.phase = 'roll'; demo.robber = demo.board.tiles.find(t => t.resource === 'desert').id;
+demo.phase = 'roll'; demo.robber = null;
 demo.players.forEach((p, i) => {
   p.resources = { wood: 3, brick: 2, sheep: 1, wheat: 4, ore: 2 };
   for (let n = 0; n < 2; n++) {
@@ -55,6 +78,15 @@ const vite = production ? null : await (await import('vite')).createServer({ roo
 const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.webp': 'image/webp', '.svg': 'image/svg+xml', '.woff': 'font/woff', '.woff2': 'font/woff2', '.ico': 'image/x-icon', '.json': 'application/json' };
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://local.invalid');
+  if (basePath && url.pathname === basePath) {
+    res.writeHead(301, { Location: basePath + '/' + url.search }); return res.end();
+  }
+  if (basePath && url.pathname.startsWith(basePath + '/')) {
+    url.pathname = url.pathname.slice(basePath.length);
+    req.url = url.pathname + url.search;
+  } else if (basePath && url.pathname !== '/api/health') {
+    res.writeHead(404); return res.end('Not found');
+  }
   if (url.pathname.startsWith('/api/')) {
     try {
       // Browser writes must originate from this host. No wildcard CORS.
@@ -62,6 +94,8 @@ const server = http.createServer(async (req, res) => {
       const ip = req.socket.remoteAddress;
       const count = (limiter.get(ip) || 0) + 1; limiter.set(ip, count);
       if (count > 600) return json(res, 429, { error: 'Za dużo żądań. Spróbuj za chwilę.' });
+      if (url.pathname === '/api/traffic' && req.method === 'GET') return json(res, 200, traffic.summary());
+      if (url.pathname === '/api/traffic' && req.method === 'POST') return json(res, 200, traffic.pulse(req, res, await readBody(req)));
       const user = accounts.session(req);
       const accountView = u => ({ user: accounts.publicUser(u), googleEnabled: accounts.googleEnabled, rooms: u ? Object.values(rooms).filter(g => g.players.some(p => p.accountId === u.id)).map(g => ({ code: g.code, ai: Boolean(g.ai), phase: g.phase, players: g.players.map(p => p.name) })).reverse() : [] });
       if (url.pathname === '/api/auth/google' && req.method === 'GET') return accounts.googleStart(req, res, url);
@@ -90,11 +124,13 @@ const server = http.createServer(async (req, res) => {
       if (req.method === 'POST' && url.pathname === '/api/rooms') {
         const body = await readBody(req);
         let code; do { code = randomBytes(4).toString('hex').slice(0, 6).toUpperCase(); } while (rooms[code]);
-        const g = createRoom(code, user?.name || body.name, body.practice === true || body.ai === true);
+        if (body.ai === true && body.botCount) throw new Error('Wybierz tryb solo albo skład pokoju ze znajomymi.');
+        const g = createRoom(code, user?.name || body.name, body.practice === true || body.ai === true, { boardSize: body.boardSize, botCount: body.botCount });
+        assignFaction(g, g.players[0], body.faction);
         if (user) g.players[0].accountId = user.id;
         if (body.ai === true) {
           g.ai = true;
-          const bot = player('Komputer', 1); bot.bot = true; bot.token = null; g.players.push(bot);
+          const bot = player('Komputer', 1); assignFaction(g, bot); bot.bot = true; bot.token = null; g.players.push(bot);
           act(g, g.host, 'start'); g.revision++;
         }
         rooms[code] = g; save();
@@ -110,8 +146,8 @@ const server = http.createServer(async (req, res) => {
         const existing = user && g.players.find(p => p.accountId === user.id);
         if (existing) return json(res, 200, { token: existing.token, state: view(g, existing.id) });
         if (g.phase !== 'lobby') return json(res, 409, { error: 'Gra już trwa. Nowi gracze nie mogą dołączyć.' });
-        if (g.players.length >= (g.ai ? 2 : 4)) return json(res, 409, { error: 'Pokój jest pełny.' });
-        const p = player(user?.name || body.name, g.players.length); if (user) p.accountId = user.id;
+        if (g.players.length >= (g.ai ? 2 : 4) || g.players.filter(p => !p.bot).length >= (g.ai ? 1 : 4 - (g.botCount || 0))) return json(res, 409, { error: 'Pokój jest pełny.' });
+        const p = player(user?.name || body.name, g.players.length); assignFaction(g, p, body.faction); if (user) p.accountId = user.id;
         g.players.push(p); g.revision++; save();
         return json(res, 201, { token: p.token, state: view(g, p.id) });
       }
@@ -137,9 +173,11 @@ const server = http.createServer(async (req, res) => {
     let path = resolve(client, `.${decodeURIComponent(url.pathname)}`);
     if (!path.startsWith(client + sep) && path !== client) { res.writeHead(403); return res.end(); }
     if (!extname(path)) path = resolve(client, url.searchParams.has('preview') ? 'index.html' : 'play.html');
-    const data = readFileSync(path); res.writeHead(200, { 'Content-Type': mime[extname(path)] || 'application/octet-stream', 'X-Content-Type-Options': 'nosniff' }); res.end(data);
+    let data = readFileSync(path);
+    if (extname(path) === '.html') data = Buffer.from(data.toString().replace('<head>', `<head><base href="${basePath}/">`));
+    res.writeHead(200, { 'Content-Type': mime[extname(path)] || 'application/octet-stream', 'X-Content-Type-Options': 'nosniff' }); res.end(data);
   } catch { res.writeHead(404); res.end('Not found'); }
 });
-server.listen(port, host, () => console.log(`Catan: http://${host}:${port} (${production ? 'production' : 'development'})`));
-const shutdown = () => { clearInterval(botTimer); server.close(); vite?.close(); };
+server.listen(port, host, () => console.log(`Kroniki Aetherii: http://${host}:${port} (${production ? 'production' : 'development'})`));
+const shutdown = () => { clearInterval(botTimer); traffic.close(); server.close(); vite?.close(); };
 process.on('SIGTERM', shutdown); process.on('SIGINT', shutdown);

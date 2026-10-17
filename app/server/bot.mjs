@@ -76,10 +76,12 @@ export function chooseBotAction(s) {
   }
   if (s.phase === 'steal') return { action: 'steal', payload: { player: [...s.victims].sort((a, b) => s.players.find(p => p.id === b).resourceCount - s.players.find(p => p.id === a).resourceCount)[0] } };
   if (!['roll', 'main'].includes(s.phase)) return null;
+  if (s.phase === 'roll') return { action: 'roll', payload: {} };
   if (!s.playedCard) {
     const cards = me.cards.filter(c => c.type !== 'point' && c.bought < s.turn);
-    for (const type of ['knight', 'plenty', 'monopoly', 'roads']) {
+    for (const type of ['ward', 'plenty', 'monopoly', 'roads']) {
       const card = cards.find(c => c.type === type); if (!card) continue;
+      if (type === 'ward' && (!s.raid || s.built)) continue;
       if (type === 'roads' && !s.legal.roads.length) continue;
       const payload = { id: card.id };
       if (type === 'monopoly') {
@@ -99,6 +101,20 @@ export function chooseBotAction(s) {
     }
   }
   if (s.phase === 'roll') return { action: 'roll', payload: {} };
+  if (s.raid && !s.built) {
+    const strength = Object.values(s.raid.contributions).reduce((n, c) => n + c.armor, 0);
+    const missing = s.players.length * 3 - strength;
+    if (missing > 0) {
+      const contribution = bag(); let added = 0;
+      const choices = [...RES].sort((a, b) => (b === 'ore' && me.faction === 'dwarves' ? 100 : hand[b]) - (a === 'ore' && me.faction === 'dwarves' ? 100 : hand[a]));
+      for (const r of choices) while (added < missing && contribution[r] < hand[r] - (me.lockedReward?.[r] || 0)) {
+        contribution[r]++; added += r === 'ore' && me.faction === 'dwarves' ? 2 : 1;
+      }
+      const reward = RES.find(r => s.bank[r] > 0);
+      if (added && (me.faction !== 'humans' || s.raid.contributions[s.me].rewarded || reward)) return { action: 'contribute', payload: { resources: contribution, reward } };
+      if (me.faction === 'rock-elves' && !s.raid.delayed) return { action: 'delay', payload: {} };
+    }
+  }
   const targets = goals();
   const ready = targets.find(t => affordable(hand, COST[t.type]));
   if (ready) return ready.type === 'development' ? { action: 'buy', payload: {} } : { action: 'build', payload: { type: ready.type, id: ready.id } };

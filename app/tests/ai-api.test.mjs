@@ -12,7 +12,7 @@ test('AI API: two players, automatic setup/turns and resume after restart withou
   async function start() {
     proc = spawn(process.execPath, ['server/start.mjs', '--production', '--host', '127.0.0.1', '--port', '14274'], { env: { ...process.env, CATAN_DATA_DIR: directory, CATAN_BOT_DELAY_MS: '20' }, stdio: 'pipe' });
     proc.stderr.on('data', c => { logs += c; });
-    await new Promise((resolve, reject) => { proc.stdout.on('data', c => { if (c.toString().includes('Catan:')) resolve(); }); proc.once('error', reject); proc.once('exit', code => reject(new Error(`Server exited ${code}`))); });
+    await new Promise((resolve, reject) => { proc.stdout.on('data', c => { if (c.toString().includes('Kroniki Aetherii:')) resolve(); }); proc.once('error', reject); proc.once('exit', code => reject(new Error(`Server exited ${code}`))); });
   }
   const stop = () => new Promise(resolve => { proc.once('exit', resolve); proc.kill('SIGTERM'); });
   let token, path;
@@ -50,7 +50,7 @@ test('AI API: two players, automatic setup/turns and resume after restart withou
       else s = await waitFor(s => s.players[s.active].id === s.me);
     }
     assert.equal(s.phase, 'roll');
-    for (const p of s.players) assert.equal(s.board.vertices.filter(v => v.owner === p.id).length, 4);
+    for (const p of s.players) assert.equal(s.board.vertices.filter(v => v.owner === p.id).length, 2);
     s = await move(s);
     while (s.phase !== 'main') { s = await move(s); }
     const rollSummary = structuredClone(s.lastRoll);

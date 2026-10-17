@@ -1,3 +1,4 @@
+import { rollUntilNoDouble } from './browser-rolls.mjs';
 import { chromium } from 'playwright';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
@@ -19,7 +20,7 @@ try {
   await host.screenshot({ path: '../artifacts/landing-mobile.png', fullPage: true });
   await host.getByLabel('Twoje imię', { exact: true }).fill('Ala');
   await host.getByRole('button', { name: 'Stwórz pokój', exact: true }).click();
-  await host.getByRole('heading', { name: 'Zbierz swoją załogę' }).waitFor();
+  await host.getByRole('heading', { name: 'Zbierz obrońców krainy' }).waitFor();
   const code = new URL(host.url()).searchParams.get('room'); assert.match(code, /^[A-Z0-9]{6}$/);
   await host.getByRole('button', { name: 'Zaproś znajomych', exact: true }).click();
   assert.ok((await host.getByLabel('Link zaproszenia', { exact: true }).inputValue()).includes(code));
@@ -29,7 +30,7 @@ try {
     const page = await pageFor(); pages.push(page); await page.goto(`${base}/?room=${code}`);
     await page.getByLabel('Twoje imię', { exact: true }).fill(name);
     await page.getByRole('button', { name: `Dołącz do pokoju ${code}` }).click();
-    await page.getByRole('heading', { name: 'Zbierz swoją załogę' }).waitFor();
+    await page.getByRole('heading', { name: 'Zbierz obrońców krainy' }).waitFor();
   }
   await host.getByRole('button', { name: 'Rozpocznij grę (4/4)', exact: true }).waitFor();
   await host.getByRole('button', { name: 'Rozpocznij grę (4/4)', exact: true }).click();
@@ -64,10 +65,10 @@ try {
   assert.notEqual(await world.getAttribute('style'), before);
   await host.getByRole('button', { name: 'Wyśrodkuj planszę', exact: true }).click();
   await host.getByRole('button', { name: 'Karty', exact: true }).click();
-  await host.getByRole('heading', { name: 'Twoje karty rozwoju' }).waitFor();
+  await host.getByRole('heading', { name: 'Twoje Karty Magii' }).waitFor();
   await host.getByRole('button', { name: 'Zamknij panel', exact: true }).click();
   await host.reload(); await host.getByRole('button', { name: 'Rzuć kośćmi', exact: true }).waitFor();
-  await host.getByRole('button', { name: 'Rzuć kośćmi', exact: true }).click();
+  await rollUntilNoDouble(host);
   // A 7 may require a robber move before turn completion.
   await host.waitForTimeout(1500);
   if (await host.locator('.hex-tile.selectable').count()) {

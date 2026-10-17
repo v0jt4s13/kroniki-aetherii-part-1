@@ -1,3 +1,4 @@
+import { rollUntilNoDouble } from './browser-rolls.mjs';
 import { chromium } from 'playwright';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
@@ -16,7 +17,7 @@ try {
   await page.getByRole('button', { name: 'Zagraj z AI', exact: true }).click();
   await page.getByText('Komputer', { exact: false }).first().waitFor();
   assert.equal(await page.locator('.players .player').count(), 2);
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 2; i++) {
     // Between the two human placements, the server performs both AI pairs.
     await page.locator('.legal-vertex').first().click();
     await page.getByRole('button', { name: 'Potwierdź budowę', exact: true }).click();
@@ -25,7 +26,7 @@ try {
   }
   await page.getByRole('button', { name: 'Rzuć kośćmi', exact: true }).waitFor();
   await page.reload();
-  await page.getByRole('button', { name: 'Rzuć kośćmi', exact: true }).click();
+  await rollUntilNoDouble(page);
   await page.locator('.roll-gains').waitFor();
   assert.match(await page.locator('.roll-gains').innerText(), /Zdobyte surowce:|żadnych surowców/);
   await page.waitForTimeout(1500);

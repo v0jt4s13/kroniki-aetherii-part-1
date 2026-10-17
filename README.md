@@ -1,10 +1,28 @@
-# Catan · Papierowa wyspa
+# Kroniki Aetherii · Korona i Cień
 
-Gra przeglądarkowa po polsku, oparta na pierwszym projekcie Product Design: pergamin, ilustrowane tereny i zielone przyciski. Pełny widok gry działa na telefonie i komputerze; podgląd template’u mobilnego jest dostępny osobno pod `/?preview=1`.
+Przeglądarkowa gra fantasy dla 2–4 graczy, z rozgrywką online, kontami oraz lokalnym przeciwnikiem AI. Zasady pochodzą z [instrukcji autora](https://docs.google.com/document/d/1p6f3Cdwg4lqFfnI_wwpzwNWJxTPqIQF3SADTpmbqkEA/edit). Cztery frakcje rywalizują o 10 PZ i wspólnie bronią krainy przed najazdami. Kataklizm kończy grę porażką wszystkich.
 
-## Uruchomienie lokalne
+Nowa oprawa powstała z pomocą **Product Design** i wbudowanego **Image Gen**: pięć terenów fantasy, pięć ikon zasobów i panoramiczna ilustracja nagłówka. Zachowano pergaminową stylistykę, geometrię planszy i chroniony podgląd urządzeń mobilnych. Grafiki: `app/public/game/aetherii/`. [Opis ilustracji i prompty](docs/grafiki-aetherii.md).
 
-Wymagany Node.js 20.19+ lub 22.12+ i npm.
+## Gra
+
+- **Dublet daje kolejny obowiązkowy rzut** w tej samej turze. Rzucasz do pierwszego wyniku bez pary, a każdy rzut normalnie produkuje zasoby. Dopiero potem handlujesz i budujesz. SI stosuje tę samą zasadę.
+- W dzienniku każdy rzut zapisuje rzeczywiste liczby zdobytych surowców dla wszystkich graczy, także zero po siódemce, niedoborze banku lub karze produkcji.
+- W każdym trybie każdy gracz rozstawia **2 Strażnice i 2 Trakty Handlowe**, w kolejności wężykowej. Surowce startowe pochodzą z drugiej Strażnicy.
+- Plansza ma do wyboru 19, 23 lub 25 heksów. Jedno pole jest pustkowiem bez numeru i nie produkuje zasobów. Pozostałe heksy produkują zasoby. Strażnica daje 1, Cytadela 2 surowce. Niedobór banku blokuje wypłatę danego rodzaju wszystkim graczom.
+- Frakcje: Krasnoludy z Podziemi (podwójny Pancerz za Mitril), Elfy Skalne (Kamienne Echo), Elfy Leśne (ochrona Traktu za Zioła), Ludzie z Równin (surowiec za pierwszą wpłatę).
+- Siódemka uruchamia najazd, zwiększa zagrożenie o 20% i wymusza odrzucenie połowy ręki ponad 7 kart. Złodziej został zastąpiony wspólną obroną.
+- Bitwa następuje po turze poprzedzającej aktywującego gracza; Kamienne Echo dodaje jedną turę. Kolejne siódemki nie resetują terminu.
+- Panel **Mobilizacja i wkłady** pokazuje Pancerz wszystkich graczy. Własne surowce można wpłacać po rzucie, przed budową. Wpłat nie można cofnąć.
+- Wymagana obrona to liczba graczy × 3. Sukces daje nagrodę Bohatera Aetherii lub Karty Magii przy remisie. Porażka niszczy Trakty najmniej zaangażowanych i ogranicza produkcję przez rundę.
+- Druga lub kolejna porażka z rzędu przy 100% zagrożenia wywołuje Kataklizm. Podczas najazdu zwycięstwo indywidualne czeka na rozstrzygnięcie bitwy.
+- Koszty budowy i liczebność talii zachowano zgodnie z decyzją użytkownika. Rycerza zastępuje **Runiczna Tarcza** (+2 Pancerza). Pozostałe karty to Magiczne Trakty, Dar Aetherii, Zew Żywiołów i Kronika Chwały.
+
+[Uściślenia niepełnych reguł i migracja zapisów](docs/zasady-aetherii.md).
+
+## Uruchomienie
+
+Wymagany Node.js 20.19+ lub 22.12+.
 
 ```sh
 cd app
@@ -12,44 +30,19 @@ npm ci
 npm run dev
 ```
 
-Otwórz `http://localhost:4173`. Serwer nasłuchuje na `0.0.0.0:4173`. W lokalnej sieci na telefonie użyj `http://ADRES_IP_KOMPUTERA:4173` i utwórz pokój z tego adresu, aby link zaproszenia zawierał adres dostępny dla pozostałych graczy.
+Domyślny adres: `http://localhost:4173`. W sieci lokalnej użyj adresu IP komputera gospodarza. Tryb podglądu urządzeń: `/?preview=1`.
 
-Wpisz imię i wybierz tryb rozgrywki:
+**Ze znajomymi**: wybierz wielkość planszy i obsadę pokoju, utwórz go i wyślij link. Dostępne są 2–4 osoby bez SI oraz pełne składy czteroosobowe: **1 człowiek + 3 SI**, **2 ludzi + 2 SI**, **3 ludzi + 1 SI**. Gospodarz może zmieniać planszę i obsadę w lobby. Przy składzie mieszanym start wymaga kompletu zadeklarowanych osób; pozostałe miejsca są zarezerwowane dla SI. Komputerowi gracze dołączają przy starcie z wolnymi frakcjami. Każda frakcja występuje raz. Zajętą frakcję przy dołączaniu zastępuje pierwsza dostępna; przed startem można zmienić ją w lobby.
 
-- **Ze znajomymi (3–4 graczy)**: wybierz **Stwórz pokój**, skopiuj link w **Zaproś znajomych**. Gospodarz rozpoczyna grę po dołączeniu 3 lub 4 osób.
-- **Z AI (Ty + komputer)**: wybierz **Zagraj z AI**. Gra rozpoczyna się od razu, bez zapraszania drugiej osoby.
-- **Trening ze znajomym (2 graczy)**: pokój dla dwóch ludzi, do którego druga osoba dołącza przez link.
+**Z AI**: wybierz frakcję i „Zagraj z AI”. Komputer rozstawia budowle, handluje, mobilizuje obronę i używa Magii. Korzysta z tych samych publicznych danych i własnej ręki co człowiek, bez zewnętrznej usługi AI. Rozgrywkę można wznowić po odświeżeniu i restarcie serwera.
 
-Oba tryby dwuosobowe są dodatkowym wariantem treningowym: każdy gracz rozstawia **4 osady i 4 drogi**, w kolejności 1–2–2–1–1–2–2–1. Początkowe surowce otrzymuje za swoją czwartą osadę. Wariant stosuje zwykłą planszę, bez neutralnych graczy ani specjalnych zasad oficjalnych wariantów dwuosobowych. Zmiana dotyczy nowo rozpoczynanych gier; rozpoczęte rozgrywki zachowują zapisane rozstawienie.
+## Konta i zapis
 
-Komputer sam rozstawia osady i drogi, rzuca kośćmi, rozbudowuje sieć, wymienia surowce w banku i portach, zagrywa karty oraz obsługuje złodzieja i odrzucanie kart. Przyjmuje opłacalne oferty człowieka. Korzysta z prostej strategii opartej na prawdopodobieństwie produkcji i potrzebach budowy; nie widzi ręki przeciwnika ani przyszłych rzutów. Działa lokalnie na serwerze bez usług AI i kluczy API. Tury komputera oraz zapis gry działają także po zamknięciu strony; po ponownym otwarciu tego samego linku w tej samej przeglądarce wrócisz do gry.
+Rejestracja e-mailem i hasłem działa lokalnie. Konto umożliwia odzyskanie rozgrywki na drugim urządzeniu. [Konfiguracja logowania Google](docs/google-login.md).
 
-## Konta i powiadomienia
+Serwer przechowuje pokoje w `rooms.json`, a konta i sesje w `accounts.json`. Domyślny katalog to `app/data`; można go ustawić przez `CATAN_DATA_DIR`. Nazwa zmiennej i klucze sesji w przeglądarce pozostają zgodne ze starą wersją. Nie publikuj katalogu danych. Przed pierwszą konwersją starych pokojów serwer tworzy kopię `rooms.pre-aetherii.json`.
 
-Nad tytułem gry wybierz **Zaloguj / załóż konto**. Rejestracja e-mailem i hasłem działa od razu; **Moje konto** pozwala wracać do przypisanych rozgrywek na innym urządzeniu. Logowanie Google wymaga własnej aplikacji OAuth — kompletna instrukcja znajduje się w [docs/google-login.md](docs/google-login.md), a szablon zmiennych w `app/.env.example`.
-
-Propozycje handlu i własna tura wyświetlają popup z przyciskiem przejścia do akcji. W nieaktywnej karcie zmienia się także tytuł strony. Opcjonalne powiadomienia systemowe włącza się pod akcjami gracza; wymagają zgody przeglądarki. Strona musi pozostawać otwarta.
-
-## Zaimplementowana rozgrywka
-
-- Losowa wyspa: 19 terenów, 54 skrzyżowania, 72 krawędzie, 9 portów. Sąsiednie tereny nie mają jednocześnie żetonów 6/8.
-- Początkowe osady i drogi w kolejności tam–z powrotem: po 2 dla 3–4 graczy, po 4 dla 2 graczy. Surowce za ostatnią osadę początkową.
-- Podsumowanie własnych surowców faktycznie zdobytych po każdym rzucie, także przeciwnika. Komunikat o braku zdobyczy oraz zachowanie ostatniego wyniku po zmianie tury i odświeżeniu.
-- Rzuty dwóch kości i produkcja wszystkich graczy, bank po 19 kart każdego surowca, reguły niedoboru.
-- Osady, miasta i drogi: koszty, odstępy, połączenia i limity 5/4/15 pionków.
-- Wynik 7: samodzielny wybór odrzucanych kart, przesunięcie złodzieja, wybór okradanego sąsiada i losowanie karty.
-- Wymiany bankowe 4:1 i porty 3:1/2:1 oraz oferty dla innych graczy z akceptacją.
-- Kryptograficzne, niezależne rzuty kości na serwerze; nowy losowy wybór karty z pozostałej talii przy każdym zakupie, bez zwracania karty do talii. Powtórzenia wyników pozostają możliwe.
-- Talia 25 kart: Rycerz, Budowa dróg, Rok urodzaju, Monopol i ukryte punkty; limit jednej karty akcji na turę i zakaz zagrywania w turze zakupu.
-- Najdłuższa droga z uwzględnieniem rozwidleń, pętli i przecięcia przez przeciwnika, największa armia, remisy i zwycięstwo przy 10 punktach we własnej turze.
-- Prywatne ręce i karty, synchronizacja przez serwer, dziennik, powrót po odświeżeniu, trwały zapis pokojów.
-- Przesuwanie planszy, pinch-to-zoom i przyciski powiększania oraz wyśrodkowania.
-
-Przyjęta wersja zasad odpowiada wskazanej [polskiej instrukcji REBEL](https://files.rebel.pl/files/instrukcje/Settlers-of-Catan.pdf), w tym kolejności **handel, potem budowa** oraz zakazowi przeniesienia złodzieja z powrotem na pustynię. Pierwszy ruch należy do gospodarza pokoju. Gra nie zawiera rozszerzeń.
-
-## Produkcja i granie przez internet
-
-Link do `localhost` działa wyłącznie na komputerze gospodarza. Do grania przez internet potrzebny jest dostępny publicznie serwer Node.js. Sam hosting statycznych plików nie zapewni wspólnej sesji. Projekt nie został opublikowany w internecie.
+## Wdrożenie
 
 ```sh
 cd app
@@ -57,17 +50,20 @@ npm run build
 npm start
 ```
 
-`PORT` (domyślnie `4173`), `HOST` (domyślnie `0.0.0.0`) i `CATAN_DATA_DIR` (domyślnie `app/data`) konfigurują serwer. Wystaw go za reverse proxy HTTPS i użyj jednego procesu aplikacji ze stałym katalogiem danych. Stan zapisuje się atomowo do `rooms.json`, a konta i sesje do `accounts.json`; nie uruchamiaj kilku replik na tych samych plikach. Zapis zawiera identyfikatory sesji graczy — nie publikuj katalogu danych. Gość traci klucz powrotu przy zmianie urządzenia lub usunięciu danych przeglądarki; konto pozwala odzyskać przypisaną grę po zalogowaniu. Dla produkcji ustaw `PUBLIC_URL` na adres HTTPS.
+Wymagany jest serwer Node.js; hosting samych plików statycznych nie obsługuje multiplayera. `PORT` (4173), `HOST` (`0.0.0.0`), `PUBLIC_URL` i `CATAN_DATA_DIR` konfigurują instancję. Użyj jednego procesu ze stałym katalogiem danych oraz reverse proxy HTTPS. Przykład: `deploy/Caddyfile.example`.
 
-Alternatywnie, z katalogu repozytorium:
+Z katalogu repozytorium można uruchomić `docker compose up --build -d`. Istniejące nazwy usługi i wolumenu `catan-data` pozostają zachowane, aby nie odłączyć starych zapisów. Projekt nie został opublikowany w internecie.
 
-```sh
-docker compose up --build -d
-```
+Konfiguracja dla `projects_manager` na ops02 i adresu `https://ops02.jdblayer.com/kroniki-aetherii/`: [instrukcja wdrożenia](docs/projects-manager.md).
 
-Obraz uruchamia serwer produkcyjny na porcie 4173 i zapisuje stan w nazwanym wolumenie `catan-data`. Do publicznego udostępnienia skieruj swoją domenę HTTPS na ten port; przykładowy plik Caddy znajduje się w `deploy/Caddyfile.example`.
+## Statystyki odwiedzin
 
-## Sprawdzenie
+Strona pokazuje liczbę obecnych i unikatowych odwiedzających z ostatnich 30 dni.
+Wejścia, udane logowania i czas widocznej karty zapisują się bez danych kont i IP
+w `traffic.json` w katalogu danych. Retencja wynosi 30 dni.
+[Opis pomiaru i ograniczeń licznika osób](docs/statystyki-odwiedzin.md).
+
+## Weryfikacja
 
 ```sh
 cd app
@@ -75,15 +71,14 @@ npm test
 npm run check:runtime
 npm run build
 npm run test:sites
-node scripts/browser-check.mjs
+npm run test:browser
 npm run test:ai-browser
 npm run test:features-browser
+npm run test:aetherii-browser
+npm run test:party-browser
+npm run test:doubles-browser
 ```
 
-Test przeglądarkowy wymaga Chrome (domyślnie `/opt/google/chrome/chrome`, zmienna `CHROME_PATH`) i działającego serwera (`CATAN_URL`, domyślnie `http://127.0.0.1:4173`). Tworzy osobny pokój testowy i cztery niezależne konteksty przeglądarki; sprawdza dołączanie, rozstawianie kliknięciami, powrót po odświeżeniu, przesuwanie i zoom, pierwszy rzut oraz zmianę tury. Zrzuty i wynik trafiają do `artifacts/`.
+Testy przeglądarkowe wymagają działającego serwera oraz Chrome (`CHROME_PATH`, domyślnie `/opt/google/chrome/chrome`). `CATAN_URL` pozwala wybrać adres serwera. Obejmują rzeczywiste rozstawianie, synchronizację, AI, konta, handel, wpłaty do obrony, Kamienne Echo, ładowanie grafik trzy mieszane składy, plansze 19/23/25 oraz ekrany 320/393/1440 px. Zrzuty trafiają do `artifacts/`.
 
-`test:ai-browser` sprawdza wybór trybu z AI na telefonie, rozstawianie obu stron, automatyczną turę komputera, powrót po odświeżeniu i dziennik. `npm test` obejmuje też pełne rozgrywki AI do 10 punktów, prywatność kart, handel, odrzucanie oraz wznowienie automatycznych ruchów po restarcie serwera.
-
-`test:sites` sprawdza zachowany starter Product Design; nie oznacza możliwości uruchomienia tego wieloosobowego backendu na hostingu statycznym Sites. Właściwy runtime multiplayer to `server/start.mjs`.
-
-Kod interfejsu: `app/src/Prototype.tsx`, `Board.tsx`, `prototype.css`, `native.css`. Reguły: `app/server/engine.mjs`. Strategia AI: `app/server/bot.mjs`. API i trwały zapis: `app/server/start.mjs`. Chroniony runtime podglądu Product Design pozostaje bez zmian.
+`test:sites` sprawdza zachowany szablon i opakowanie statycznego podglądu; nie zastępuje serwera gry.

@@ -7,7 +7,7 @@ Logowanie e-mailem i hasłem działa bez dodatkowych usług. Konto przechowuje i
 1. W [Google Cloud Console](https://console.cloud.google.com/) utwórz lub wybierz projekt. W **Google Auth Platform** skonfiguruj nazwę aplikacji, adres kontaktowy i odbiorców. Dla aplikacji zewnętrznej w trybie testowym dodaj adresy testerów.
 2. Utwórz klienta OAuth typu **Web application**. Do dozwolonych adresów przekierowania dodaj dokładnie:
    - lokalnie: `http://localhost:4173/api/auth/google/callback`;
-   - na serwerze: `https://TWOJA-DOMENA/api/auth/google/callback`.
+   - na serwerze: `https://ops02.jdblayer.com/kroniki-aetherii/api/auth/google/callback`.
 3. Skopiuj `app/.env.example` do `app/.env`. Wpisz identyfikator klienta, sekret i adres strony:
 
 ```dotenv

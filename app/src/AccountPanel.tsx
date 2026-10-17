@@ -1,3 +1,4 @@
+import { appPath } from './app-path';
 import { useState, type FormEvent } from 'react';
 import { GameInput } from './GameShell';
 import type { State } from './game-types';
@@ -20,14 +21,14 @@ export default function AccountPanel({ account, refresh, api, state, token, room
     {account.user ? <>
       <p>Zalogowano jako <strong>{account.user.name}</strong><br/>{account.user.email}</p>
       <p>Twoje gry są dostępne po zalogowaniu także na innym urządzeniu.</p>
-      {account.googleEnabled && !account.user.google && <a className="secondary google-login" href={`/api/auth/google${roomCode ? `?room=${roomCode}` : ''}`}>Połącz konto z Google</a>}
+      {account.googleEnabled && !account.user.google && <a className="secondary google-login" href={appPath(`/api/auth/google${roomCode ? `?room=${roomCode}` : ''}`)}>Połącz konto z Google</a>}
       {state && !state.accountLinked && <button className="secondary" disabled={busy} onClick={() => perform(async () => { const r = await api('/api/account/link', { code: state.code, token }); resume(r); })}>Zapisz tę grę na koncie</button>}
       <h3>Twoje rozgrywki</h3>
       {!account.rooms.length && <p>Stwórz grę lub dołącz do pokoju. Zapiszemy ją na Twoim koncie.</p>}
       {account.rooms.map(r => <button key={r.code} className="account-room secondary" disabled={busy} onClick={() => perform(async () => resume(await api('/api/account/resume', { code: r.code })))}><strong>{r.code} {r.ai ? '· z AI' : ''}</strong><span>{r.players.join(', ')} · {r.phase === 'finished' ? 'zakończona' : r.phase === 'lobby' ? 'oczekiwanie' : 'w toku'}</span></button>)}
       <button className="text-button" disabled={busy} onClick={() => perform(async () => { await api('/api/auth/logout', {}); logout(); })}>Wyloguj się</button>
     </> : <>
-      {account.googleEnabled ? <a className="secondary google-login" href={`/api/auth/google${roomCode ? `?room=${roomCode}` : ''}`}>Kontynuuj z Google</a> : <><button className="secondary" disabled>Kontynuuj z Google</button><p className="subtle">Logowanie Google będzie dostępne po skonfigurowaniu aplikacji przez gospodarza serwera.</p></>}
+      {account.googleEnabled ? <a className="secondary google-login" href={appPath(`/api/auth/google${roomCode ? `?room=${roomCode}` : ''}`)}>Kontynuuj z Google</a> : <><button className="secondary" disabled>Kontynuuj z Google</button><p className="subtle">Logowanie Google będzie dostępne po skonfigurowaniu aplikacji przez gospodarza serwera.</p></>}
       <div className="account-tabs"><button type="button" aria-pressed={!register} onClick={() => { setRegister(false); setError(''); }}>Zaloguj e-mailem</button><button type="button" aria-pressed={register} onClick={() => { setRegister(true); setError(''); }}>Załóż konto</button></div>
       <form className="entry-form" onSubmit={submit}>
         {register && <><label htmlFor="account-name">Imię gracza</label><GameInput id="account-name" autoComplete="nickname" required maxLength={24} value={name} onChange={e => setName(e.target.value)}/></>}
