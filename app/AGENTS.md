@@ -2,6 +2,7 @@
 
 ## Game preferences
 
+- AI mode supports one human plus 1-3 computer players (max 4 players, the limit of the board, colors and piece pools). Only two-player games get the four-settlement start below.
 - Two-player games (human versus AI and two-human training) start with four settlements and four roads per player. Starting resources come from each player's final starting settlement.
 - Below dice results, show the current user's actual resource gains from the latest roll, including an explicit message when no resources were gained. Keep the summary through turn changes and reloads until the next roll.
 - Notify players of incoming trade offers and their turn with a dismissible popup; optionally use browser notifications after permission and indicate activity in the hidden tab title.

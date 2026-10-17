@@ -97,7 +97,9 @@ const server = http.createServer(async (req, res) => {
         if (user) g.players[0].accountId = user.id;
         if (body.ai === true) {
           g.ai = true;
-          const bot = player('Komputer', 1); bot.bot = true; bot.token = null; g.players.push(bot);
+          const aiCount = Math.min(3, Math.max(1, Math.trunc(Number(body.aiCount)) || 1));
+          g.maxPlayers = 1 + aiCount;
+          for (let i = 1; i <= aiCount; i++) { const bot = player(aiCount === 1 ? 'Komputer' : `Komputer ${i}`, i); bot.bot = true; bot.token = null; g.players.push(bot); }
           act(g, g.host, 'start'); g.revision++;
         }
         rooms[code] = g; save();
@@ -113,7 +115,7 @@ const server = http.createServer(async (req, res) => {
         const existing = user && g.players.find(p => p.accountId === user.id);
         if (existing) return json(res, 200, { token: existing.token, state: view(g, existing.id) });
         if (g.phase !== 'lobby') return json(res, 409, { error: 'Gra już trwa. Nowi gracze nie mogą dołączyć.' });
-        if (g.players.length >= (g.ai ? 2 : 4)) return json(res, 409, { error: 'Pokój jest pełny.' });
+        if (g.players.length >= (g.ai ? g.maxPlayers || 2 : 4)) return json(res, 409, { error: 'Pokój jest pełny.' });
         const p = player(user?.name || body.name, g.players.length); if (user) p.accountId = user.id;
         g.players.push(p); g.revision++; save();
         return json(res, 201, { token: p.token, state: view(g, p.id) });

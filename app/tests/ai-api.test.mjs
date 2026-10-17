@@ -63,3 +63,28 @@ test('AI API: two players, automatic setup/turns and resume after restart withou
     assert.equal(logs, '');
   } finally { await stop(); }
 });
+
+test('AI API: human plus three computers share one board and finish the setup', { timeout: 20000 }, async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'aetherii-ai4-')), base = 'http://127.0.0.1:14276';
+  const proc = spawn(process.execPath, ['server/start.mjs', '--production', '--host', '127.0.0.1', '--port', '14276'], { env: { ...process.env, AETHERII_DATA_DIR: directory, AETHERII_BOT_DELAY_MS: '20' }, stdio: 'pipe' });
+  await new Promise((resolve, reject) => { proc.stdout.on('data', c => { if (c.toString().includes('Kroniki Aetherii:')) resolve(); }); proc.once('error', reject); proc.once('exit', code => reject(new Error(`Server exited ${code}`))); });
+  const call = async (route, body, auth) => {
+    const r = await fetch(base + route, { method: body ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json', ...(auth ? { Authorization: `Bearer ${auth}` } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
+    return { status: r.status, body: await r.json() };
+  };
+  try {
+    const r = await call('/api/rooms', { name: 'Ala', ai: true, aiCount: 3 }); assert.equal(r.status, 201);
+    const { token } = r.body, path = `/api/rooms/${r.body.state.code}`; let s = r.body.state;
+    assert.equal(s.maxPlayers, 4); assert.deepEqual(s.players.map(p => p.bot === true), [false, true, true, true]);
+    assert.equal(new Set(s.players.map(p => p.color)).size, 4);
+    assert.equal((await call(`${path}/join`, { name: 'Intruz' })).status, 409);
+    for (let i = 0; i < 400 && s.phase.startsWith('setup'); i++) {
+      if (s.players[s.active].id === s.me) {
+        const m = await call(`${path}/action`, { revision: s.revision, ...chooseBotAction(s) }, token); assert.equal(m.status, 200, JSON.stringify(m.body));
+      } else await new Promise(resolve => setTimeout(resolve, 20));
+      s = (await call(path, undefined, token)).body;
+    }
+    assert.ok(!s.phase.startsWith('setup'), `setup stuck in ${s.phase}`);
+    assert.equal(s.board.vertices.filter(v => v.owner).length, 8);
+  } finally { await new Promise(resolve => { proc.once('exit', resolve); proc.kill('SIGTERM'); }); }
+});
