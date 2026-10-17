@@ -1,0 +1,30 @@
+{
+  "result": "passed",
+  "results": [
+    {
+      "size": 19,
+      "bots": 1,
+      "humans": 3,
+      "setup": "passed",
+      "productionLog": "passed",
+      "reload": "passed"
+    },
+    {
+      "size": 23,
+      "bots": 2,
+      "humans": 2,
+      "setup": "passed",
+      "productionLog": "passed",
+      "reload": "passed"
+    },
+    {
+      "size": 25,
+      "bots": 3,
+      "humans": 1,
+      "setup": "passed",
+      "productionLog": "passed",
+      "reload": "passed"
+    }
+  ],
+  "errors": []
+}

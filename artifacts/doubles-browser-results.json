@@ -1,0 +1,13 @@
+{
+  "result": "passed",
+  "tests": [
+    "double gives extra roll",
+    "mandatory roll blocks construction and end",
+    "pending roll survives reload",
+    "second double repeats again",
+    "non-double unlocks normal actions",
+    "every roll logs production",
+    "chain is one turn"
+  ],
+  "errors": []
+}

@@ -1,0 +1,32 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
+test('prefixed traffic API exposes only counts, shares login identity, rejects cross-origin writes and persists on shutdown', { timeout: 15000 }, async t => {
+  const dir = mkdtempSync(join(tmpdir(), 'traffic-api-')), base = 'http://127.0.0.1:14287/kroniki-aetherii';
+  const proc = spawn(process.execPath, ['server/start.mjs', '--production', '--host', '127.0.0.1', '--port', '14287'], { env: { ...process.env, PUBLIC_URL: base, CATAN_DATA_DIR: dir }, stdio: 'pipe' });
+  const stop = () => proc.exitCode !== null ? Promise.resolve() : new Promise(resolve => { proc.once('exit', resolve); proc.kill('SIGTERM'); });
+  t.after(async () => { await stop(); rmSync(dir, { recursive: true, force: true }); });
+  await new Promise((resolve, reject) => { proc.stdout.on('data', c => { if (c.toString().includes('Kroniki Aetherii:')) resolve(); }); proc.once('exit', c => reject(new Error('Server exited ' + c))); proc.once('error', reject); });
+  const get = () => fetch(base + '/api/traffic');
+  assert.deepEqual(await (await get()).json(), { online: 0, unique30d: 0 });
+  const post = (body, cookie = '', origin) => fetch(base + '/api/traffic', { method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: cookie, ...(origin ? { Origin: origin } : {}) }, body: JSON.stringify(body) });
+  assert.equal((await post({ type: 'visit', tab: 'tab-00000000000001' }, '', 'https://evil.example')).status, 403);
+  assert.equal((await post({ type: 'invalid', tab: 'bad' })).status, 400);
+  const visit = await post({ type: 'visit', tab: 'tab-00000000000001' });
+  assert.equal(visit.status, 200); assert.match(visit.headers.get('cache-control'), /no-store/);
+  assert.deepEqual(await visit.json(), { online: 1, unique30d: 1 });
+  const cookie = visit.headers.get('set-cookie').split(';')[0];
+  const registered = await fetch(base + '/api/auth/register', { method: 'POST', headers: { Cookie: cookie, 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Private', email: 'private@example.org', password: 'traffic-password-123' }) });
+  assert.equal(registered.status, 200);
+  assert.deepEqual(await (await get()).json(), { online: 1, unique30d: 1 });
+  await post({ type: 'leave', tab: 'tab-00000000000001' }, cookie);
+  assert.deepEqual(await (await get()).json(), { online: 0, unique30d: 1 });
+  await stop();
+  const file = readFileSync(join(dir, 'traffic.json'), 'utf8');
+  assert.equal(JSON.parse(file).events.filter(e => e.type === 'login').length, 1);
+  for (const value of ['private@example.org', 'Private', cookie.split('=')[1], '127.0.0.1']) assert.ok(!file.includes(value));
+});
