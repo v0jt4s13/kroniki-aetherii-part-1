@@ -53,8 +53,11 @@ demo.players.forEach((p, i) => {
 });
 const vite = production ? null : await (await import('vite')).createServer({ root, configFile: resolve(root, 'vite.game.config.ts'), server: { middlewareMode: true }, appType: 'spa' });
 const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.webp': 'image/webp', '.svg': 'image/svg+xml', '.woff': 'font/woff', '.woff2': 'font/woff2', '.ico': 'image/x-icon', '.json': 'application/json' };
+// Aplikacja stoi za proxy pod prefiksem z PUBLIC_URL (np. /kroniki-aetherii) i dostaje pelna sciezke.
+const urlPrefix = (() => { try { return new URL(process.env.PUBLIC_URL).pathname.replace(/\/+$/, ''); } catch { return ''; } })();
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://local.invalid');
+  if (urlPrefix && (url.pathname === urlPrefix || url.pathname.startsWith(`${urlPrefix}/`))) { url.pathname = url.pathname.slice(urlPrefix.length) || '/'; req.url = url.pathname + url.search; }
   if (url.pathname.startsWith('/api/')) {
     try {
       // Browser writes must originate from this host. No wildcard CORS.

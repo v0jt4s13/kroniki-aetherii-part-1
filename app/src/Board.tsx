@@ -53,7 +53,7 @@ export default function Board({ state, mode, choose, preview = false }: { state:
   return <div className="board-viewport" ref={el} data-scroll-drag="ignore" aria-label="Plansza Kroniki Aetherii. Przesuń jednym palcem, powiększ dwoma." onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onWheel={e => { if (e.ctrlKey || e.metaKey) setZoom(z => clamp(z - e.deltaY * 0.003)); }}>
     <div className="board-world" ref={world} style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }}>
       {state.board.tiles.map(t => <button key={t.id} type="button" className={`hex-tile ${mode === 'robber' && legal.robber.includes(t.id) ? 'selectable' : ''}`} style={{ left: `${t.x / 540 * 100}%`, top: `${t.y / 500 * 100}%` }} aria-label={`${t.resource === 'desert' ? 'Pustynia' : labels[t.resource]}, ${t.number || 'brak produkcji'}${t.id === state.robber ? ', złodziej' : ''}`} onClick={() => mode === 'robber' && legal.robber.includes(t.id) && select('robber', t.id)} tabIndex={mode === 'robber' && legal.robber.includes(t.id) ? 0 : -1}>
-        <img src={`/game/${t.resource === 'wood' ? 'forest' : t.resource}.webp`} alt="" draggable={false}/>
+        <img src={`./game/${t.resource === 'wood' ? 'forest' : t.resource}.webp`} alt="" draggable={false}/>
         {t.number > 0 && <span className={`number-token ${[6, 8].includes(t.number) ? 'frequent' : ''}`}>{t.number}<small>{'•'.repeat(6 - Math.abs(7 - t.number))}</small></span>}
         {t.id === state.robber && !preview && <span className="robber-piece"><PersonIcon/></span>}
       </button>)}

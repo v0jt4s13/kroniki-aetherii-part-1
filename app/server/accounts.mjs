@@ -16,6 +16,7 @@ export function createAccounts(path, config = process.env) {
   const cookie = (name, value, age) => `${name}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${age}${secure ? '; Secure' : ''}`;
   const save = () => { writeFileSync(path + '.tmp', JSON.stringify(db), { mode: 0o600 }); renameSync(path + '.tmp', path); };
   const publicUser = u => u ? { id: u.id, name: u.name, email: u.email, google: Boolean(u.googleId) } : null;
+  const basePath = (() => { try { return new URL(config.PUBLIC_URL).pathname.replace(/\/?$/, '/'); } catch { return '/'; } })();
   const googleEnabled = Boolean(config.GOOGLE_CLIENT_ID && config.GOOGLE_CLIENT_SECRET && config.PUBLIC_URL);
   const google = googleEnabled ? new OAuth2Client(config.GOOGLE_CLIENT_ID, config.GOOGLE_CLIENT_SECRET, `${config.PUBLIC_URL.replace(/\/$/, '')}/api/auth/google/callback`) : null;
   function session(req) {
@@ -76,7 +77,7 @@ export function createAccounts(path, config = process.env) {
       const state = url.searchParams.get('state'), p = pending.get(state);
       if (!p || p.expires < Date.now() || cookies(req).aetherii_oauth !== state) fail('Sesja Google wygasła. Rozpocznij logowanie ponownie.');
       pending.delete(state);
-      const returnTo = p.room ? `/?room=${p.room}` : '/';
+      const returnTo = p.room ? `${basePath}?room=${p.room}` : basePath;
       if (url.searchParams.has('error')) { res.writeHead(302, { Location: `${returnTo}${p.room ? '&' : '?'}auth=cancelled`, 'Set-Cookie': cookie('aetherii_oauth', '', 0) }); res.end(); return; }
       const code = url.searchParams.get('code'); if (!code) fail('Brak kodu logowania Google.');
       const { tokens } = await google.getToken({ code, codeVerifier: p.verifier });

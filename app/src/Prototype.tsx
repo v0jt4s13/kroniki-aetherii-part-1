@@ -41,13 +41,13 @@ export default function Prototype() {
     if (!response.ok) { if (result.state) update(result.state); throw new Error(result.error || 'Nie udało się połączyć.'); }
     return result;
   }
-  useEffect(() => { api('/api/account', undefined, '').then(a => { setAccount(a); if (a.user) setName(a.user.name); }).catch(() => setError('Nie udało się wczytać konta. Spróbuj odświeżyć stronę.')); const result = new URLSearchParams(location.search).get('auth'); if (result) { setPanel('account'); setError(result === 'use-password' ? 'Ten e-mail ma konto z hasłem. Zaloguj się e-mailem.' : 'Logowanie Google anulowano. Możesz spróbować ponownie.'); } }, []);
-  useEffect(() => { api('/api/preview', undefined, '').then(setPreview).catch(() => setError('Nie udało się wczytać planszy. Odśwież stronę.')); }, []);
+  useEffect(() => { api('./api/account', undefined, '').then(a => { setAccount(a); if (a.user) setName(a.user.name); }).catch(() => setError('Nie udało się wczytać konta. Spróbuj odświeżyć stronę.')); const result = new URLSearchParams(location.search).get('auth'); if (result) { setPanel('account'); setError(result === 'use-password' ? 'Ten e-mail ma konto z hasłem. Zaloguj się e-mailem.' : 'Logowanie Google anulowano. Możesz spróbować ponownie.'); } }, []);
+  useEffect(() => { api('./api/preview', undefined, '').then(setPreview).catch(() => setError('Nie udało się wczytać planszy. Odśwież stronę.')); }, []);
   useEffect(() => {
     if (!token || !code) return;
     let stopped = false, timer: ReturnType<typeof setTimeout>;
     async function poll() {
-      try { const s = await api(`/api/rooms/${code}`, undefined, token); if (!stopped) { update(s); setConnected(true); } }
+      try { const s = await api(`./api/rooms/${code}`, undefined, token); if (!stopped) { update(s); setConnected(true); } }
       catch (e) { if (!stopped) { setConnected(false); if (!stateRef.current) setError((e as Error).message); } }
       if (!stopped) timer = setTimeout(poll, 1200);
     }
@@ -58,7 +58,7 @@ export default function Prototype() {
     if (busyRef.current || !stateRef.current) return false;
     busyRef.current = true; setBusy(true); setError('');
     try {
-      const next = await api(`/api/rooms/${code}/action`, { action, payload, revision: stateRef.current.revision }); update(next);
+      const next = await api(`./api/rooms/${code}/action`, { action, payload, revision: stateRef.current.revision }); update(next);
       if (close) { setPanel(null); setTarget(null); setSelectedCard(null); }
       return true;
     } catch (e) { setError((e as Error).message); return false; }
@@ -69,7 +69,7 @@ export default function Prototype() {
     keyboard.hide(); setError(''); setBusy(true); busyRef.current = true;
     try {
       if (join && !/^[A-Z0-9]{6}$/.test(code)) throw new Error('Kod pokoju ma 6 znaków.');
-      const result = await api(join ? `/api/rooms/${code}/join` : '/api/rooms', { name, practice, ai }, '');
+      const result = await api(join ? `./api/rooms/${code}/join` : './api/rooms', { name, practice, ai }, '');
       localStorage.setItem(`aetherii:${result.state.code}`, result.token); localStorage.setItem('aetherii:name', name.trim());
       setCode(result.state.code); setToken(result.token); update(result.state); setPanel(null);
       history.replaceState({}, '', `?room=${result.state.code}`);
@@ -87,7 +87,7 @@ export default function Prototype() {
     setToken(''); setCode(''); setState(null); setName(''); setAccount(a => ({ ...a, user: null, rooms: [] }));
     setPanel(null); history.replaceState({}, '', location.pathname);
   }
-  const open = (p: Panel) => { keyboard.hide(); setError(''); if (p === 'account') api('/api/account', undefined, '').then(refreshAccount).catch(e => setError(e.message)); setPanel(p); setChosen(blankBag()); setSelectedCard(null); };
+  const open = (p: Panel) => { keyboard.hide(); setError(''); if (p === 'account') api('./api/account', undefined, '').then(refreshAccount).catch(e => setError(e.message)); setPanel(p); setChosen(blankBag()); setSelectedCard(null); };
   const s = state || preview, me = state?.players.find(p => p.id === state.me);
   const current = state?.players[state.active];
   const mine = Boolean(state && current?.id === state.me);
@@ -120,7 +120,7 @@ export default function Prototype() {
           <h2>{phaseText}</h2><p>{hint}</p>
           {state?.dice && <div className="dice-result" aria-label={`Rzut: ${state.dice.join(' i ')}`}><b>{state.dice[0]}</b><b>{state.dice[1]}</b><span>Wynik: {state.dice[0] + state.dice[1]}</span></div>}
           {state?.lastRoll && <div className="roll-gains" role="status"><small>Ostatni rzut: {state.lastRoll.player} · {state.lastRoll.dice.reduce((a, b) => a + b, 0)} </small><p>{total(state.lastRoll.resources) ? `Zdobyte surowce: ${costText(state.lastRoll.resources)}.` : 'Ten rzut nie przyniósł Ci żadnych surowców.'}</p></div>}
-          {state && state.phase !== 'lobby' && <div className="resources" aria-label="Twoje surowce">{resources.map(r => <div key={r}><img src={`/game/icon-${r}.webp`} alt=""/><b>{me?.resources?.[r] || 0}</b><span>{labels[r]}</span></div>)}</div>}
+          {state && state.phase !== 'lobby' && <div className="resources" aria-label="Twoje surowce">{resources.map(r => <div key={r}><img src={`./game/icon-${r}.webp`} alt=""/><b>{me?.resources?.[r] || 0}</b><span>{labels[r]}</span></div>)}</div>}
           {!state && <form className="entry-form" onSubmit={e => enter(e, Boolean(initialCode))}><label htmlFor="player-name">Twoje imię</label><KeyboardInput id="player-name" maxLength={24} placeholder="Jak Cię nazywać?" autoComplete="nickname" value={name} onChange={e => setName(e.target.value)}/>{!initialCode && <label className="select-label">Tryb rozgrywki<select value={ai ? 'ai' : practice ? 'practice' : 'friends'} onChange={e => { setAI(e.target.value === 'ai'); setPractice(e.target.value === 'practice'); }}><option value="friends">Ze znajomymi (3–4 graczy)</option><option value="ai">Z AI (Ty + komputer)</option><option value="practice">Trening ze znajomym (2 graczy)</option></select></label>}<button className="primary" disabled={busy || !name.trim()} type="submit">{busy ? 'Przygotowuję pokój…' : initialCode ? `Dołącz do pokoju ${initialCode}` : ai ? 'Zagraj z AI' : 'Stwórz pokój'}</button>{!initialCode && <button className="text-button" type="button" onClick={() => open('join')}>Mam już kod pokoju <Chevron/></button>}</form>}
           {state?.phase === 'lobby' && <div className="lobby-actions"><button className="primary" onClick={() => open('invite')}><Share2Icon/>Zaproś znajomych</button>{state.host === state.me ? <button className="secondary" disabled={busy || state.players.length < (state.practice ? 2 : 3)} onClick={() => command('start')}>Rozpocznij grę ({state.players.length}/{state.maxPlayers})</button> : <p>Gospodarz rozpocznie grę, gdy wszyscy dołączą.</p>}<span className="subtle">Link zaprasza do tego samego pokoju.</span></div>}
           {state && mine && state.phase === 'roll' && <button className="primary" disabled={busy || !connected} onClick={() => command('roll')}><ShuffleIcon/>{busy ? 'Rzucam…' : 'Rzuć kośćmi'}</button>}
