@@ -1,0 +1,43 @@
+.theme-bar { grid-column:1/-1; display:flex; justify-content:flex-end; padding:4px 12px; background:#efe3c9; }
+.theme-bar .theme-toggle { display:inline-flex; align-items:center; gap:7px; min-height:36px; padding:5px 10px; border:1px solid #b8baa1; border-radius:8px; background:transparent; color:#254b35; font:600 14px/1.4 'DM Sans',sans-serif; }
+.theme-toggle svg { width:18px; height:18px; }
+
+/* Only game-owned surfaces change; terrain and parchment number tokens stay readable. */
+[data-aetherii-theme=dark] .native-game,
+[data-aetherii-theme=dark] .native-game .catan-scroll,
+[data-aetherii-theme=dark] .catan-scroll { background:#14161f; color:#e9e2d0; }
+[data-aetherii-theme=dark] .catan-game { background:#14161f; color:#e9e2d0; }
+[data-aetherii-theme=dark] :is(.catan-game,.game-sheet,.game-nav,.toast) { --ink:#e9e2d0; --paper:#1b1e2b; --muted:#c4bca8; color:#e9e2d0; }
+[data-aetherii-theme=dark] :is(.native-sheet,.bottom-sheet,.game-nav,.toast,.game-alert,.traffic-report,.account-bar,.theme-bar) { background:#1b1e2b; color:#e9e2d0; border-color:#5d5546; }
+[data-aetherii-theme=dark] .native-sheet-overlay { background:#05060acc; }
+[data-aetherii-theme=dark] .game-header { background-image:linear-gradient(#14161f88,#14161fc9),url('/game/aetherii/header.webp'); }
+[data-aetherii-theme=dark] :is(.brand h1,.brand>span,.sheet-title,.game-sheet h3,.turn-panel h2,.winner-heading h2,.card-guide summary) { color:#e2c06a; }
+[data-aetherii-theme=dark] :is(.game-sheet p,.turn-panel>p,.roll-gains small,.subtle,.game-log small,.account-tabs button,.account-room span,.notification-setting,.select-label>small,.realm-defense small,.defense-row small,.dice-result>span,.resources span,.traffic-report) { color:#c4bca8; }
+[data-aetherii-theme=dark] :is(.player,.resources b,.bag-picker b,.development-card,.build-option,.select-label,.entry-form label,.bag-picker legend,.threat-heading,.defense-row,.game-log span) { color:#e9e2d0; }
+[data-aetherii-theme=dark] :is(.primary,.game-sheet .primary) { background:#6d2434; color:#fff5df; border-color:#c46e7f; }
+[data-aetherii-theme=dark] .primary:hover { background:#86364a; }
+[data-aetherii-theme=dark] :is(.secondary,.text-button,.theme-toggle,.room-code,.share-button,.game-nav>button.selected,.account-tabs button[aria-pressed=true],.rules a) { color:#e2c06a; border-color:#8d7e5a; }
+[data-aetherii-theme=dark] :is(.secondary,.theme-toggle) { background:transparent; }
+[data-aetherii-theme=dark] :is(.room-code,.share-button,.sheet-close) { background:#232739; color:#e9e2d0; }
+[data-aetherii-theme=dark] .game-nav>button { color:#c4bca8; }
+[data-aetherii-theme=dark] .game-nav>button.selected::after { background:#e2c06a; }
+[data-aetherii-theme=dark] :is(.entry-form input,.select-label input,.select-label select,.bag-picker button,.development-card,.roll-gains,.dice-result>b) { background:#232739; color:#e9e2d0; border-color:#8d7e5a; }
+[data-aetherii-theme=dark] :is(.build-option:disabled,.development-card:disabled) { color:#c4bca8; }
+[data-aetherii-theme=dark] :is(.build-reason,.defense-warning,.raid-active .threat-heading) { color:#f0b58d; }
+[data-aetherii-theme=dark] :is(.build-icon,.build-option:disabled .build-icon) { background:#232739; color:#e2c06a; }
+[data-aetherii-theme=dark] :is(.player,.bag-picker>div,.build-option,.game-log li,.defense-row,.realm-defense,.account-tabs,.trade-offer,.card-guide,.result-row) { border-color:#5d5546; }
+[data-aetherii-theme=dark] .trade-sheet .bag-picker small { color:#e2c06a; }
+[data-aetherii-theme=dark] .game-sheet:not(.trade-sheet) .bag-picker small { color:#c4bca8; }
+[data-aetherii-theme=dark] .realm-defense progress::-webkit-progress-bar { background:#343344; }
+[data-aetherii-theme=dark] .realm-defense progress::-webkit-progress-value { background:#c9a24b; }
+[data-aetherii-theme=dark] .realm-defense.raid-active progress::-webkit-progress-value { background:#c46e7f; }
+[data-aetherii-theme=dark] .error-message { background:#39212b; color:#ffccb5; border-color:#c46e7f; }
+[data-aetherii-theme=dark] :is(.dismiss-alert,.game-alert .text-button) { color:#e2c06a; }
+[data-aetherii-theme=dark] :is(.connection-message,.board-loading) { background:#232739; color:#e9e2d0; }
+[data-aetherii-theme=dark] .chosen-card { border-color:#e2c06a; }
+[data-aetherii-theme=dark] :is(.settlement-piece.occupied>svg,.watchtower-art) { filter:drop-shadow(0 0 .5px #fff) drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 3px #ffffffcc) drop-shadow(0 0 6px #ffffff66); }
+[data-aetherii-theme=dark] :is(.catan-game,.native-sheet) :is(button,input,select):focus-visible { outline:2px solid #e2c06a; outline-offset:2px; }
+[data-aetherii-theme=dark] .game-sheet input::placeholder { color:#b5ad9d; }
+[data-aetherii-theme=dark] .game-sheet .error-message { color:#ffccb5; }
+[data-aetherii-theme=dark] :is(.game-sheet,.realm-defense) .defense-warning { color:#f0b58d; }
+[data-aetherii-theme=dark] .active-player::after { background:#e2c06a; }

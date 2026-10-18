@@ -23,6 +23,7 @@
 
 - Solo AI supports one human plus 1–3 bots, with unique factions and two starting watchtowers/roads per player in every party size.
 
+- Support a saved light/dark switch: parchment light mode and midnight navy surfaces, parchment text, gold accents and crimson primary buttons in dark mode. Preserve board artwork and readable number/port tokens; dark mode highlights occupied buildings with a light outline/shadow.
 
 ## Prototype Instructions
 

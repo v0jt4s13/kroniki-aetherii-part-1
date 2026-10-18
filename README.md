@@ -36,6 +36,8 @@ Domyślny adres: `http://localhost:4173`. W sieci lokalnej użyj adresu IP kompu
 
 **Z AI**: wybierz 1–3 przeciwników SI, frakcję i „Zagraj z AI”. Komputer rozstawia budowle, handluje, mobilizuje obronę i używa Magii. Korzysta z tych samych publicznych danych i własnej ręki co człowiek, bez zewnętrznej usługi AI. Rozgrywkę można wznowić po odświeżeniu i restarcie serwera.
 
+Przełącznik „Ciemny motyw” / „Jasny motyw” nad planszą zapisuje wybór w przeglądarce. Motyw zmienia też panele gry; grafiki terenów pozostają wspólne.
+
 ## Konta i zapis
 
 Rejestracja e-mailem i hasłem działa lokalnie. Konto umożliwia odzyskanie rozgrywki na drugim urządzeniu. [Konfiguracja logowania Google](docs/google-login.md).
