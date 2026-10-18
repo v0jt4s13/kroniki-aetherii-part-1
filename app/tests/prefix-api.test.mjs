@@ -17,7 +17,7 @@ test('prefixed production routes preserve assets, accounts, rooms and OAuth retu
   const dir = mkdtempSync(join(tmpdir(), 'aetherii-prefix-'));
   const origin = 'http://127.0.0.1:14285', prefix = '/kroniki-aetherii', base = origin + prefix;
   const proc = spawn(process.execPath, ['server/start.mjs', '--production', '--host', '127.0.0.1', '--port', '14285'], {
-    env: { ...process.env, CATAN_DATA_DIR: dir, PUBLIC_URL: base, GOOGLE_CLIENT_ID: 'test-client', GOOGLE_CLIENT_SECRET: 'test-secret' }, stdio: 'pipe',
+    env: { ...process.env, AETHERII_DATA_DIR: dir, PUBLIC_URL: base, GOOGLE_CLIENT_ID: 'test-client', GOOGLE_CLIENT_SECRET: 'test-secret' }, stdio: 'pipe',
   });
   t.after(async () => {
     if (proc.exitCode === null) await new Promise(resolve => { proc.once('exit', resolve); proc.kill('SIGTERM'); });

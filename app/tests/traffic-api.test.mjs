@@ -7,7 +7,7 @@ import { join } from 'node:path';
 
 test('prefixed traffic API exposes only counts, shares login identity, rejects cross-origin writes and persists on shutdown', { timeout: 15000 }, async t => {
   const dir = mkdtempSync(join(tmpdir(), 'traffic-api-')), base = 'http://127.0.0.1:14287/kroniki-aetherii';
-  const proc = spawn(process.execPath, ['server/start.mjs', '--production', '--host', '127.0.0.1', '--port', '14287'], { env: { ...process.env, PUBLIC_URL: base, CATAN_DATA_DIR: dir }, stdio: 'pipe' });
+  const proc = spawn(process.execPath, ['server/start.mjs', '--production', '--host', '127.0.0.1', '--port', '14287'], { env: { ...process.env, PUBLIC_URL: base, AETHERII_DATA_DIR: dir }, stdio: 'pipe' });
   const stop = () => proc.exitCode !== null ? Promise.resolve() : new Promise(resolve => { proc.once('exit', resolve); proc.kill('SIGTERM'); });
   t.after(async () => { await stop(); rmSync(dir, { recursive: true, force: true }); });
   await new Promise((resolve, reject) => { proc.stdout.on('data', c => { if (c.toString().includes('Kroniki Aetherii:')) resolve(); }); proc.once('exit', c => reject(new Error('Server exited ' + c))); proc.once('error', reject); });

@@ -16,7 +16,7 @@ const basePath = publicBasePath();
 const arg = name => { const at = process.argv.indexOf(name); return at < 0 ? null : process.argv[at + 1]; };
 const port = Number(arg('--port') || process.env.PORT || 4173);
 const host = arg('--host') || process.env.HOST || '0.0.0.0';
-const dataDir = resolve(process.env.CATAN_DATA_DIR || resolve(root, 'data'));
+const dataDir = resolve(process.env.AETHERII_DATA_DIR || process.env.CATAN_DATA_DIR || resolve(root, 'data'));
 mkdirSync(dataDir, { recursive: true, mode: 0o700 });
 const dbPath = resolve(dataDir, 'rooms.json');
 const traffic = createTraffic(resolve(dataDir, 'traffic.json'));
@@ -53,7 +53,7 @@ const botTimer = setInterval(() => {
       next.revision++; rooms[g.code] = next; save();
     } catch (error) { console.error(`AI action failed in room ${g.code}: ${error.message}`); }
   }
-}, Math.max(10, Number(process.env.CATAN_BOT_DELAY_MS) || 650));
+}, Math.max(10, Number(process.env.AETHERII_BOT_DELAY_MS || process.env.CATAN_BOT_DELAY_MS) || 650));
 botTimer.unref();
 const json = (res, status, body) => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' }); res.end(JSON.stringify(body)); };
 const readBody = req => new Promise((resolveBody, reject) => {

@@ -19,7 +19,7 @@ test('API: capacity, identity, hidden hands, stale actions, atomic failures and 
   const port = 14273, base = `http://127.0.0.1:${port}`;
   let proc;
   async function start() {
-    proc = spawn(process.execPath, ['server/start.mjs', '--production', '--host', '127.0.0.1', '--port', `${port}`], { cwd: process.cwd(), env: { ...process.env, CATAN_DATA_DIR: directory }, stdio: 'pipe' });
+    proc = spawn(process.execPath, ['server/start.mjs', '--production', '--host', '127.0.0.1', '--port', `${port}`], { cwd: process.cwd(), env: { ...process.env, AETHERII_DATA_DIR: directory }, stdio: 'pipe' });
     await new Promise((resolve, reject) => { proc.stdout.on('data', chunk => { if (chunk.toString().includes('Kroniki Aetherii:')) resolve(); }); proc.on('error', reject); proc.on('exit', code => { if (code) reject(new Error(`Server exited ${code}`)); }); });
   }
   const stop = () => new Promise(resolve => { proc.once('exit', resolve); proc.kill('SIGTERM'); });

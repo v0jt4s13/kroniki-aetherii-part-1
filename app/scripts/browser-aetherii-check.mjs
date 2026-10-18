@@ -3,7 +3,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { createRoom, player, act, view } from '../server/engine.mjs';
 import { chooseBotAction } from '../server/bot.mjs';
-const base = process.env.CATAN_URL || 'http://127.0.0.1:4173';
+const base = process.env.AETHERII_URL || 'http://127.0.0.1:4173';
 const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || '/opt/google/chrome/chrome', headless: true, args: ['--no-sandbox'] });
 const g = createRoom('DEF123', 'Ala');
 for (let i = 1; i < 4; i++) g.players.push(player(['Bartek', 'Celina', 'Dawid'][i - 1], i));

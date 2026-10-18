@@ -3,7 +3,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { createRoom, player, act, view } from '../server/engine.mjs';
 import { chooseBotAction } from '../server/bot.mjs';
-const base = process.env.CATAN_URL || 'http://127.0.0.1:4175';
+const base = process.env.AETHERII_URL || 'http://127.0.0.1:4175';
 const g = createRoom('DOUBLE', 'Ala', true); g.players.push(player('Bartek', 1)); act(g, g.host, 'start');
 while (g.phase.startsWith('setup')) { const p = g.players[g.active], d = chooseBotAction(view(g, p.id)); act(g, p.id, d.action, d.payload); }
 const dice = [2, 2, 4, 4, 1, 2], errors = [];

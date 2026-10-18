@@ -10,7 +10,7 @@ test('AI API: two players, automatic setup/turns and resume after restart withou
   const directory = mkdtempSync(join(tmpdir(), 'catan-ai-'));
   const base = 'http://127.0.0.1:14274'; let proc, logs = '';
   async function start() {
-    proc = spawn(process.execPath, ['server/start.mjs', '--production', '--host', '127.0.0.1', '--port', '14274'], { env: { ...process.env, CATAN_DATA_DIR: directory, CATAN_BOT_DELAY_MS: '20' }, stdio: 'pipe' });
+    proc = spawn(process.execPath, ['server/start.mjs', '--production', '--host', '127.0.0.1', '--port', '14274'], { env: { ...process.env, AETHERII_DATA_DIR: directory, AETHERII_BOT_DELAY_MS: '20' }, stdio: 'pipe' });
     proc.stderr.on('data', c => { logs += c; });
     await new Promise((resolve, reject) => { proc.stdout.on('data', c => { if (c.toString().includes('Kroniki Aetherii:')) resolve(); }); proc.once('error', reject); proc.once('exit', code => reject(new Error(`Server exited ${code}`))); });
   }

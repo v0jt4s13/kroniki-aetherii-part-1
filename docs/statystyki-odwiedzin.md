@@ -32,7 +32,7 @@ Bez trwałej tożsamości nie można dokładnie rozpoznawać ludzi między urzą
 
 ## Plik i retencja
 
-Plik: `${CATAN_DATA_DIR}/traffic.json`, domyślnie `app/data/traffic.json`, na produkcji
+Plik: `${AETHERII_DATA_DIR}/traffic.json`, domyślnie `app/data/traffic.json`, na produkcji
 `/opt/apps/kroniki-aetherii/data/traffic.json`. Prawa: `600`. Zdarzenia mają pola
 `id`, `type` (`visit`, `login`, `activity`), `at` (czas Unix w ms), `activeMs`.
 Nie udostępniamy pliku ani szczegółów logowań publicznym API.

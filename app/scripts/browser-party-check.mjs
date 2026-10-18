@@ -2,7 +2,7 @@ import { rollUntilNoDouble } from './browser-rolls.mjs';
 import { chromium } from 'playwright';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
-const base = process.env.CATAN_URL || 'http://127.0.0.1:4175';
+const base = process.env.AETHERII_URL || 'http://127.0.0.1:4175';
 const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || '/opt/google/chrome/chrome', headless: true, args: ['--no-sandbox'] });
 const errors = [], results = [];
 mkdirSync('../artifacts', { recursive: true });

@@ -40,7 +40,7 @@ Domyślny adres: `http://localhost:4173`. W sieci lokalnej użyj adresu IP kompu
 
 Rejestracja e-mailem i hasłem działa lokalnie. Konto umożliwia odzyskanie rozgrywki na drugim urządzeniu. [Konfiguracja logowania Google](docs/google-login.md).
 
-Serwer przechowuje pokoje w `rooms.json`, a konta i sesje w `accounts.json`. Domyślny katalog to `app/data`; można go ustawić przez `CATAN_DATA_DIR`. Nazwa zmiennej i klucze sesji w przeglądarce pozostają zgodne ze starą wersją. Nie publikuj katalogu danych. Przed pierwszą konwersją starych pokojów serwer tworzy kopię `rooms.pre-aetherii.json`.
+Serwer przechowuje pokoje w `rooms.json`, a konta i sesje w `accounts.json`. Domyślny katalog to `app/data`; można go ustawić przez `AETHERII_DATA_DIR`. Serwer przyjmuje też dawną zmienną `CATAN_DATA_DIR`, jeśli `AETHERII_DATA_DIR` nie jest ustawione. Klucze zapisanych sesji pozostają zgodne ze starszą wersją. Nie publikuj katalogu danych. Przed pierwszą konwersją starych pokojów serwer tworzy kopię `rooms.pre-aetherii.json`.
 
 ## Wdrożenie
 
@@ -50,7 +50,7 @@ npm run build
 npm start
 ```
 
-Wymagany jest serwer Node.js; hosting samych plików statycznych nie obsługuje multiplayera. `PORT` (4173), `HOST` (`0.0.0.0`), `PUBLIC_URL` i `CATAN_DATA_DIR` konfigurują instancję. Użyj jednego procesu ze stałym katalogiem danych oraz reverse proxy HTTPS. Przykład: `deploy/Caddyfile.example`.
+Wymagany jest serwer Node.js; hosting samych plików statycznych nie obsługuje multiplayera. `PORT` (4173), `HOST` (`0.0.0.0`), `PUBLIC_URL` i `AETHERII_DATA_DIR` konfigurują instancję. Użyj jednego procesu ze stałym katalogiem danych oraz reverse proxy HTTPS. Przykład: `deploy/Caddyfile.example`.
 
 Z katalogu repozytorium można uruchomić `docker compose up --build -d`. Istniejące nazwy usługi i wolumenu `catan-data` pozostają zachowane, aby nie odłączyć starych zapisów. Projekt nie został opublikowany w internecie.
 
@@ -79,6 +79,6 @@ npm run test:party-browser
 npm run test:doubles-browser
 ```
 
-Testy przeglądarkowe wymagają działającego serwera oraz Chrome (`CHROME_PATH`, domyślnie `/opt/google/chrome/chrome`). `CATAN_URL` pozwala wybrać adres serwera. Obejmują rzeczywiste rozstawianie, synchronizację, AI, konta, handel, wpłaty do obrony, Kamienne Echo, ładowanie grafik trzy mieszane składy, plansze 19/23/25 oraz ekrany 320/393/1440 px. Zrzuty trafiają do `artifacts/`.
+Testy przeglądarkowe wymagają działającego serwera oraz Chrome (`CHROME_PATH`, domyślnie `/opt/google/chrome/chrome`). `AETHERII_URL` pozwala wybrać adres serwera. Obejmują rzeczywiste rozstawianie, synchronizację, AI, konta, handel, wpłaty do obrony, Kamienne Echo, ładowanie grafik trzy mieszane składy, plansze 19/23/25 oraz ekrany 320/393/1440 px. Zrzuty trafiają do `artifacts/`.
 
 `test:sites` sprawdza zachowany szablon i opakowanie statycznego podglądu; nie zastępuje serwera gry.

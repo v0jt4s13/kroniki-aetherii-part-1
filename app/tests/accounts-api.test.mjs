@@ -8,7 +8,7 @@ import { join } from 'node:path';
 test('Accounts: private email/password sessions, room recovery, guest linking, restart and Google state/PKCE', { timeout: 20000 }, async () => {
   const dir = mkdtempSync(join(tmpdir(), 'catan-accounts-')), base = 'http://127.0.0.1:14275'; let proc;
   async function start() {
-    proc = spawn(process.execPath, ['server/start.mjs', '--production', '--host', '127.0.0.1', '--port', '14275'], { env: { ...process.env, CATAN_DATA_DIR: dir, PUBLIC_URL: base, GOOGLE_CLIENT_ID: 'test-client', GOOGLE_CLIENT_SECRET: 'test-secret' }, stdio: 'pipe' });
+    proc = spawn(process.execPath, ['server/start.mjs', '--production', '--host', '127.0.0.1', '--port', '14275'], { env: { ...process.env, AETHERII_DATA_DIR: dir, PUBLIC_URL: base, GOOGLE_CLIENT_ID: 'test-client', GOOGLE_CLIENT_SECRET: 'test-secret' }, stdio: 'pipe' });
     await new Promise((resolve, reject) => { proc.stdout.on('data', c => { if (c.toString().includes('Kroniki Aetherii:')) resolve(); }); proc.once('error', reject); proc.once('exit', c => reject(new Error(`Server exited ${c}`))); });
   }
   const stop = () => new Promise(resolve => { proc.once('exit', resolve); proc.kill('SIGTERM'); });

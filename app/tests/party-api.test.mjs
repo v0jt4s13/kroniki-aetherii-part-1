@@ -10,7 +10,7 @@ test('mixed party API reserves seats, enforces host settings, runs three AI play
   const directory = mkdtempSync(join(tmpdir(), 'aetherii-party-')), base = 'http://127.0.0.1:14278';
   let processHandle, logs = '';
   async function start() {
-    processHandle = spawn(process.execPath, ['server/start.mjs', '--production', '--host', '127.0.0.1', '--port', '14278'], { env: { ...process.env, CATAN_DATA_DIR: directory, CATAN_BOT_DELAY_MS: '15' }, stdio: 'pipe' });
+    processHandle = spawn(process.execPath, ['server/start.mjs', '--production', '--host', '127.0.0.1', '--port', '14278'], { env: { ...process.env, AETHERII_DATA_DIR: directory, AETHERII_BOT_DELAY_MS: '15' }, stdio: 'pipe' });
     processHandle.stderr.on('data', c => { logs += c; });
     await new Promise((resolve, reject) => { processHandle.stdout.on('data', c => { if (c.toString().includes('Kroniki Aetherii:')) resolve(); }); processHandle.once('error', reject); processHandle.once('exit', code => reject(new Error(`Server exited ${code}`))); });
   }

@@ -10,7 +10,7 @@ try {
   const page = await browser.newPage({ viewport: { width: 393, height: 852 } });
   page.on('pageerror', e => errors.push(e.message));
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
-  await page.goto(process.env.CATAN_URL || 'http://127.0.0.1:4173');
+  await page.goto(process.env.AETHERII_URL || 'http://127.0.0.1:4173');
   await page.getByLabel('Twoje imię', { exact: true }).fill('Ala');
   await page.getByRole('combobox', { name: 'Tryb rozgrywki', exact: true }).selectOption('ai');
   await page.screenshot({ path: '../artifacts/ai-mode-mobile.png', fullPage: true });
