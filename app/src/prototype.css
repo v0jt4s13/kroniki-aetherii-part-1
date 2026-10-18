@@ -234,6 +234,11 @@
   .brand h1,.native-game .brand h1 { font-size:clamp(28px,9vw,40px); white-space:nowrap; letter-spacing:-1px; }
   .room-tools,.native-game .room-tools { top:auto; bottom:5px; right:10px; }
   .resources span,.native-game .resources span { font-size:11px; overflow-wrap:normal; }
+  /* On phones the player strip sits under the board; the rest of the page keeps its order after it. */
+  .aetherii-game { display:flex; flex-direction:column; }
+  .aetherii-game>.board-viewport,.aetherii-game>.board-loading { order:1; }
+  .aetherii-game>.players { order:2; }
+  .aetherii-game>:not(.account-bar,.traffic-report,.game-header,.board-viewport,.board-loading,.players) { order:3; }
 }
 
 /* Faction silhouettes identify watchtowers; the small base marks their owner. */
@@ -320,3 +325,26 @@
   .players:has(.player:nth-child(3)) { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px 0; }
   .players:has(.player:nth-child(3)) .player:nth-child(even) { border-right:0; }
 }
+
+/* Faction picker: radio cards with the faction watchtower; selected card gets a gold ring. */
+.faction-picker { display:grid; gap:10px; margin:0; padding:0; border:0; min-width:0; }
+.faction-picker legend { padding:0; margin-bottom:8px; font:600 16px 'DM Sans',sans-serif; color:#4c5a42; }
+.entry-form .faction-card { position:relative; display:flex; align-items:center; gap:14px; min-height:96px; padding:10px 14px 10px 10px; border:1px solid #cdbf9f; border-radius:12px; background:#fff9e9; color:#173f30; cursor:pointer; }
+.entry-form .faction-card input { position:absolute; inset:0; width:100%; min-height:0; margin:0; opacity:0; cursor:pointer; }
+.faction-card:has(input:checked) { border:2px solid #8a6a1f; padding:9px 13px 9px 9px; background:#f6e9c4; }
+.faction-card:has(input:focus-visible) { outline:3px solid #53764c; outline-offset:2px; }
+.faction-art { position:relative; flex:0 0 68px; width:68px; height:76px; border:1px solid #cdbf9f; border-radius:9px; background:#efe3c9; }
+.faction-art img { position:absolute; left:6px; top:4px; width:54px; height:60px; object-fit:contain; pointer-events:none; }
+.faction-art::after { content:''; position:absolute; left:22px; bottom:6px; width:24px; height:8px; border:1px solid #fff2d0; border-radius:50%; background:var(--faction-color,#8a6a1f); }
+.faction-card[data-faction=dwarves] { --faction-color:#3f8a4a; }
+.faction-card[data-faction=rock-elves] { --faction-color:#b8403a; }
+.faction-card[data-faction=forest-elves] { --faction-color:#3b6fb0; }
+.faction-card[data-faction=humans] { --faction-color:#d1a02c; }
+.faction-text { display:grid; gap:3px; min-width:0; flex:1 1 auto; }
+.faction-text strong { font:700 17px/1.3 'DM Sans',sans-serif; color:#103c2a; }
+.faction-text small { font:400 14px/1.45 'DM Sans',sans-serif; color:#4f5b49; }
+.faction-check { flex:0 0 24px; width:24px; height:24px; box-sizing:border-box; border:2px solid #b9aa86; border-radius:50%; background:center/14px no-repeat; }
+.faction-card:has(input:checked) .faction-check { border-color:#8a6a1f; background-color:#8a6a1f; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='%23fff9e9' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 7.5l3 3 6-7'/%3E%3C/svg%3E"); }
+
+/* The board takes programmatic focus during setup; no ring for pointer users. */
+.board-viewport:focus:not(:focus-visible) { outline:none; }

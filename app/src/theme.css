@@ -40,3 +40,12 @@
 [data-aetherii-theme=dark] .game-sheet .error-message { color:#ffccb5; }
 [data-aetherii-theme=dark] :is(.game-sheet,.realm-defense) .defense-warning { color:#f0b58d; }
 [data-aetherii-theme=dark] .active-player::after { background:#e2c06a; }
+
+[data-aetherii-theme=dark] .faction-picker legend { color:#e9e2d0; }
+[data-aetherii-theme=dark] .entry-form .faction-card { background:#1b1e2b; border-color:#5d5546; color:#e9e2d0; }
+[data-aetherii-theme=dark] .faction-card:has(input:checked) { background:#232739; border-color:#e2c06a; }
+[data-aetherii-theme=dark] .faction-art { border-color:#8d7e5a; }
+[data-aetherii-theme=dark] .faction-text strong { color:#f1dfaf; }
+[data-aetherii-theme=dark] .faction-text small { color:#c4bca8; }
+[data-aetherii-theme=dark] .faction-check { border-color:#8d7e5a; }
+[data-aetherii-theme=dark] .faction-card:has(input:checked) .faction-check { border-color:#e2c06a; background-color:#e2c06a; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='%2314161f' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 7.5l3 3 6-7'/%3E%3C/svg%3E"); }
