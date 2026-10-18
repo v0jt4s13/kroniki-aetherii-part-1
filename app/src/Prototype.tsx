@@ -94,6 +94,12 @@ export default function Prototype() {
     setToken(''); setCode(''); setState(null); setName(''); setAccount(a => ({ ...a, user: null, rooms: [] }));
     setPanel(null); history.replaceState({}, '', location.pathname);
   }
+  // A room link that no longer works (expired, game already running, full): leave it and offer a fresh game.
+  const roomUnavailable = Boolean(initialCode && !state && error);
+  function newGame() {
+    setError(''); setToken(''); setCode(''); setPanel(null);
+    history.replaceState({}, '', location.pathname);
+  }
   const open = (p: Panel) => { keyboard.hide(); setError(''); if (p === 'account') api('/api/account', undefined, '').then(refreshAccount).catch(e => setError(e.message)); setPanel(p); setChosen(blankBag()); setSelectedCard(null); };
   const s = state || preview, me = state?.players.find(p => p.id === state.me);
   const current = state?.players[state.active];
@@ -152,6 +158,7 @@ export default function Prototype() {
           {state?.phase === 'finished' && <button className="primary" onClick={() => open('winner')}>Zobacz wyniki</button>}
           {state && <NotificationSettings/>}
           {errorBox && !visiblePanel && errorBox}
+          {roomUnavailable && !visiblePanel && <button className="primary" type="button" onClick={newGame}>Zacznij nową grę</button>}
         </section>
       </main>
     </MobileScroll>
