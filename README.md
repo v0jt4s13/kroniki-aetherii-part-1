@@ -38,6 +38,8 @@ Domyślny adres: `http://localhost:4173`. W sieci lokalnej użyj adresu IP kompu
 
 Przełącznik „Ciemny motyw” / „Jasny motyw” nad planszą zapisuje wybór w przeglądarce. Motyw zmienia też panele gry; grafiki terenów pozostają wspólne.
 
+Podczas najazdu nad wyspę nadlatuje smok. Koniec bitwy pokazuje krótki efekt zwycięstwa lub porażki z wynikiem Pancerza. Animacje respektują ograniczenie ruchu w ustawieniach urządzenia. [Grafika, prompt i opis animacji](docs/grafika-smoka.md).
+
 ## Konta i zapis
 
 Rejestracja e-mailem i hasłem działa lokalnie. Konto umożliwia odzyskanie rozgrywki na drugim urządzeniu. [Konfiguracja logowania Google](docs/google-login.md).

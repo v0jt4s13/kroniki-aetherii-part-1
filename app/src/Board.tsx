@@ -1,4 +1,5 @@
 import { appPath } from './app-path';
+import RaidEffects from './RaidEffects';
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
 import { PlusIcon, MinusIcon, Crosshair2Icon, LayersIcon, PersonIcon } from '@radix-ui/react-icons';
 import type { State } from './game-types';
@@ -89,6 +90,7 @@ export default function Board({ state, mode, choose, preview = false }: { state:
         return <button key={v.id} className={`settlement-piece ${active ? 'legal-vertex' : ''} ${v.owner ? 'occupied' : ''} ${watchtower ? 'watchtower-piece' : ''}`} style={{ left: `${v.x / 540 * 100}%`, top: `${v.y / 500 * 100}%`, '--piece-color': color(v.owner) } as CSSProperties} aria-label={`${v.level === 2 ? 'Cytadela' : 'Strażnica'} ${v.id}${owner ? ` · ${owner.name} · ${factions[owner.faction].name}` : ''}${active ? ', dostępne miejsce' : ''}`} disabled={!active} onClick={() => select(mode || 'settlement', v.id)}>{watchtower ? <img className="watchtower-art" src={watchtowerImage(owner.faction)} alt="" draggable={false}/> : v.owner ? <LayersIcon/> : <PlusIcon/>}</button>;
       })}
     </div>
+    <RaidEffects state={state} preview={preview}/>
     <div className="zoom-controls" onPointerDown={e => e.stopPropagation()}>
       <button aria-label="Powiększ planszę" onClick={() => setZoom(z => clamp(z + 0.2))}><PlusIcon/></button>
       <button aria-label="Pomniejsz planszę" onClick={() => setZoom(z => clamp(z - 0.2))}><MinusIcon/></button>
