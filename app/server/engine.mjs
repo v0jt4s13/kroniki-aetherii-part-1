@@ -178,8 +178,8 @@ export function act(g, playerId, action, payload = {}, rng = randomInt) {
     } else if (action === 'roll') {
       check(g.phase === 'roll', 'Kości zostały już rzucone.');
       g.dice = [rng(1, 7), rng(1, 7)];
-      // Co druga siódemka jest odrzucana i losowana od nowa, więc siódemek jest o połowę mniej.
-      if (sum(g.dice) === 7 && (g.sevens = (g.sevens || 0) + 1) % 2 === 0) {
+      // Trzy z czterech siódemek są odrzucane i losowane od nowa, więc siódemek jest cztery razy mniej.
+      if (sum(g.dice) === 7 && (g.sevens = (g.sevens || 0) + 1) % 4 !== 1) {
         while (sum(g.dice) === 7) g.dice = [rng(1, 7), rng(1, 7)];
       }
       const total = sum(g.dice);
