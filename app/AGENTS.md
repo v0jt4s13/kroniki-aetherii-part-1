@@ -2,13 +2,30 @@
 
 ## Game preferences
 
-- AI mode supports one human plus 1-3 computer players (max 4 players, the limit of the board, colors and piece pools). Only two-player games get the four-settlement start below.
-- Two-player games (human versus AI and two-human training) start with four settlements and four roads per player. Starting resources come from each player's final starting settlement.
+- Kroniki Aetherii follows the linked author rules: 2–4 players, two Strażnice and two Trakty per player in every mode; starting resources come from the second Strażnica. Four unique factions, cooperative raids replace the robber. Costs and the existing card deck are retained by explicit user choice, with defensive magic replacing knights. Preserve painted parchment art; user requested Product Design for fantasy asset revisions.
 - Below dice results, show the current user's actual resource gains from the latest roll, including an explicit message when no resources were gained. Keep the summary through turn changes and reloads until the next roll.
 - Notify players of incoming trade offers and their turn with a dismissible popup; optionally use browser notifications after permission and indicate activity in the hidden tab title.
 - Support player accounts with email/password and Google social login, plus recovery of account-owned games on another device.
 - Disabled construction options must remain readable and explain why they are unavailable. Include descriptions of every development card, including cards that cannot yet be played.
 - Keep board content inside `.board-world` and constrain pan using actual board and viewport dimensions. Use cryptographic server randomness for dice and development cards without replacement.
+
+- Each faction has its own painted watchtower sprite (dwarven fortress, rock-elf spire, forest-elf tree lookout, human timber tower). Use the matching sprite both for level-one buildings on the board and beside player names in the score bar. Keep the player color as a secondary ownership marker.
+
+- New rooms support 19, 23 or 25 hexes, configurable by the host before start. Friends rooms support all-human games or fixed four-player parties of 1 human + 3 AI, 2 humans + 2 AI, or 3 humans + 1 AI. Log actual resource gain counts for every player after every roll, including zero gains.
+
+- Doubles grant a mandatory extra dice roll in the same turn. Repeat for every double until a non-double occurs, before trade/mobilization/building. Every roll produces resources and logs normally; bonus rolls do not advance raid deadlines or production-penalty rounds. A final seven still triggers the normal raid/discard flow. Preserve pending bonus rolls through reload and restart.
+
+- Every new board (19/23/25 total hexes) includes exactly one barren/desert hex without a number; it never produces resources. Preserve already-started layouts. Red 6/8 tokens mark the highest production probability (5/36 each); keep them nonadjacent.
+
+- Available building sites use compact plus markers that leave terrain visible, while retaining a larger transparent touch area.
+
+- Use the approved trade-sheet reading scale throughout game content: 18px body, 17px descriptions, 16px form labels, 14px secondary text, 21px section headings and 24px sheet titles. Trade quantities are 26px; available stock is 18px. Keep narrow layouts readable without horizontal overflow.
+
+- Solo AI supports one human plus 1–3 bots, with unique factions and two starting watchtowers/roads per player in every party size.
+
+- Support a saved light/dark switch: parchment light mode and midnight navy surfaces, parchment text, gold accents and crimson primary buttons in dark mode. Preserve board artwork and readable number/port tokens; dark mode highlights occupied buildings with a light outline/shadow.
+
+- Active raids show a small painted dragon flying from the realm-defense threat heading toward the sea by the island, with pointer-transparent arrival and battle-result animations. Only newly resolved battles animate; loading a saved result must not replay it. Respect reduced-motion preferences and preserve board controls.
 
 ## Prototype Instructions
 

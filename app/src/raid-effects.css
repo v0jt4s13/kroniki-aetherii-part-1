@@ -1,0 +1,48 @@
+.raid-effects { position:absolute; inset:0; z-index:8; pointer-events:none; overflow:hidden; }
+.raid-effects *,.raid-flight-layer,.raid-flight-layer *,.battle-result-layer,.battle-result-layer * { pointer-events:none; }
+.aetherii-game { position:relative; }
+.raid-flight-layer { position:absolute; inset:0; z-index:9; }
+.battle-result-layer { position:absolute; inset:0; z-index:9; }
+.native-game .battle-result-layer { position:fixed; z-index:26; }
+.native-game .battle-outcome { top:50%; }
+.raid-dragon { position:absolute; left:8px; top:8px; width:clamp(70px,18vw,100px); z-index:2; }
+.raid-dragon--arrival { animation:dragon-arrival 2.8s cubic-bezier(.4,0,.2,1) both; }
+.dragon-hover { position:relative; animation:dragon-hover 3.2s ease-in-out 2.8s infinite alternate; }
+.dragon-hover img { position:relative; display:block; width:100%; height:auto; filter:drop-shadow(0 2px 2px #10151c99); }
+.dragon-shadow { position:absolute; width:64%; height:15%; left:18%; bottom:5%; border-radius:50%; background:#15253033; filter:blur(4px); transform:translate(10px,12px); }
+.raid-announcement { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.raid-dragon--victory { animation:dragon-retreat 2.2s ease-in both; }
+.raid-dragon--defeat { animation:dragon-strike 2.4s ease-in-out both; }
+.raid-dragon:not(.raid-dragon--arrival) .dragon-hover { animation:none; }
+.battle-aura { position:absolute; inset:0; animation:battle-aura 2s ease-out both; }
+.battle-aura--victory { background:radial-gradient(ellipse at center,#f1da8033,transparent 75%); }
+.battle-aura--defeat { background:radial-gradient(ellipse at center,transparent 25%,#9b302a66); }
+.battle-outcome { position:absolute; z-index:3; left:50%; top:42%; transform:translate(-50%,-50%); width:min(340px,calc(100% - 24px)); display:grid; justify-items:center; gap:7px; padding:20px 14px; border:1px solid #647e58; border-radius:14px; background:#fbf3dff5; box-shadow:0 8px 30px #15251b40; text-align:center; color:#254b35; font:400 17px/1.4 'DM Sans',sans-serif; animation:battle-reveal 480ms ease-out both; }
+.battle-outcome strong { font:700 24px/1.3 'Libre Baskerville',Georgia,serif; }
+.battle-outcome small { font-size:14px; }
+.battle-symbol { display:grid; place-items:center; width:48px; height:48px; border-radius:50%; background:#e0e8cc; color:#2c6340; animation:battle-emblem 650ms ease-out both; }
+.battle-symbol svg { width:32px; height:32px; }
+.battle-outcome--defeat { color:#833929; border-color:#b37858; }
+.battle-outcome--defeat .battle-symbol { background:#f1d9c7; color:#9d4130; }
+.battle-sparks { position:absolute; inset:0; }
+.battle-sparks i { position:absolute; left:50%; top:42%; width:6px; height:10px; border-radius:2px; background:#b99238; animation:battle-spark 1.8s ease-out var(--spark-delay) both; }
+[data-aetherii-theme=dark] .battle-outcome { background:#1b1e2bf5; border-color:#c9a24b; color:#f1dfaf; }
+[data-aetherii-theme=dark] .battle-outcome--defeat { border-color:#c46e7f; color:#ffccb5; }
+[data-aetherii-theme=dark] .battle-symbol { background:#333d32; color:#e2c06a; }
+[data-aetherii-theme=dark] .battle-outcome--defeat .battle-symbol { background:#492c35; color:#f0b58d; }
+@keyframes dragon-arrival {
+  0% { opacity:1; transform:translate3d(var(--dragon-from-x,0px),var(--dragon-from-y,0px),0) rotate(-12deg) scale(.55); }
+  70% { transform:translate3d(calc(var(--dragon-from-x,0px) * .12),calc(var(--dragon-from-y,0px) * .12),0) rotate(6deg) scale(1); }
+  100% { opacity:1; transform:translate3d(0,0,0) rotate(0) scale(1); }
+}
+@keyframes dragon-hover { from { transform:translateY(0) rotate(-2deg); } to { transform:translateY(5px) rotate(2deg); } }
+@keyframes dragon-retreat { from { opacity:1; transform:translate(0,0) scale(1); } to { opacity:0; transform:translate(-150px,-130px) rotate(-25deg) scale(.4); } }
+@keyframes dragon-strike { 0% { opacity:1; transform:translate(0,0) scale(1); } 45% { opacity:1; transform:translate(95px,130px) rotate(-16deg) scale(1.3); } 100% { opacity:0; transform:translate(-170px,240px) rotate(15deg) scale(.8); } }
+@keyframes battle-aura { 0% { opacity:0; } 25% { opacity:1; } 100% { opacity:0; } }
+@keyframes battle-reveal { from { opacity:0; transform:translate(-50%,-44%) scale(.96); } to { opacity:1; transform:translate(-50%,-50%) scale(1); } }
+@keyframes battle-emblem { 0% { transform:scale(.6); } 65% { transform:scale(1.12); } 100% { transform:scale(1); } }
+@keyframes battle-spark { from { opacity:0; transform:translate(0,0) rotate(0); } 15% { opacity:1; } to { opacity:0; transform:translate(var(--spark-x),var(--spark-y)) rotate(160deg); } }
+@media(prefers-reduced-motion:reduce) {
+  .raid-effects *,.raid-flight-layer *,.battle-result-layer * { animation:none!important; }
+  .raid-dragon--victory,.raid-dragon--defeat,.battle-sparks,.battle-aura { display:none; }
+}

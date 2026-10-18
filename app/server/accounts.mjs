@@ -1,3 +1,4 @@
+import { publicBasePath } from './base-path.mjs';
 import { randomBytes, randomUUID, createHash, scrypt, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
 import { existsSync, readFileSync, writeFileSync, renameSync } from 'node:fs';
@@ -9,11 +10,12 @@ const emailOf = value => typeof value === 'string' ? value.trim().toLowerCase() 
 const fail = (message, status = 400) => { throw Object.assign(new Error(message), { status }); };
 const cookies = req => Object.fromEntries((req.headers.cookie || '').split(';').map(x => x.trim().split('=')));
 
-export function createAccounts(path, config = process.env) {
+export function createAccounts(path, config = process.env, onLogin = () => {}) {
   const db = existsSync(path) ? JSON.parse(readFileSync(path, 'utf8')) : { users: [], sessions: {} };
   const pending = new Map(), attempts = new Map();
   const secure = config.PUBLIC_URL?.startsWith('https://');
-  const cookie = (name, value, age) => `${name}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${age}${secure ? '; Secure' : ''}`;
+  const home = publicBasePath(config) + '/';
+  const cookie = (name, value, age) => `${name}=${value}; Path=${home}; HttpOnly; SameSite=Lax; Max-Age=${age}${secure ? '; Secure' : ''}`;
   const save = () => { writeFileSync(path + '.tmp', JSON.stringify(db), { mode: 0o600 }); renameSync(path + '.tmp', path); };
   const publicUser = u => u ? { id: u.id, name: u.name, email: u.email, google: Boolean(u.googleId) } : null;
   const basePath = (() => { try { return new URL(config.PUBLIC_URL).pathname.replace(/\/?$/, '/'); } catch { return '/'; } })();
@@ -30,6 +32,7 @@ export function createAccounts(path, config = process.env) {
     const raw = randomBytes(32).toString('hex');
     db.sessions[digest(raw)] = { userId: u.id, expires: Date.now() + 30 * 86400000 };
     save(); res.setHeader('Set-Cookie', cookie('aetherii_session', raw, 30 * 86400));
+    onLogin(req, res);
   }
   function throttle(req) {
     const ip = req.socket.remoteAddress, now = Date.now();
@@ -77,7 +80,7 @@ export function createAccounts(path, config = process.env) {
       const state = url.searchParams.get('state'), p = pending.get(state);
       if (!p || p.expires < Date.now() || cookies(req).aetherii_oauth !== state) fail('Sesja Google wygasła. Rozpocznij logowanie ponownie.');
       pending.delete(state);
-      const returnTo = p.room ? `${basePath}?room=${p.room}` : basePath;
+      const returnTo = p.room ? `${home}?room=${p.room}` : home;
       if (url.searchParams.has('error')) { res.writeHead(302, { Location: `${returnTo}${p.room ? '&' : '?'}auth=cancelled`, 'Set-Cookie': cookie('aetherii_oauth', '', 0) }); res.end(); return; }
       const code = url.searchParams.get('code'); if (!code) fail('Brak kodu logowania Google.');
       const { tokens } = await google.getToken({ code, codeVerifier: p.verifier });
@@ -97,7 +100,7 @@ export function createAccounts(path, config = process.env) {
       }
       if (!u) { u = { id: randomUUID(), name: (claims.name || claims.given_name || 'Gracz').slice(0, 24), email: emailOf(claims.email), googleId: claims.sub }; db.users.push(u); }
       issue(req, res, u);
-      res.setHeader('Set-Cookie', [res.getHeader('Set-Cookie'), cookie('aetherii_oauth', '', 0)]);
+      res.setHeader('Set-Cookie', [].concat(res.getHeader('Set-Cookie'), cookie('aetherii_oauth', '', 0)));
       res.writeHead(302, { Location: returnTo, 'Cache-Control': 'no-store' }); res.end();
     },
   };

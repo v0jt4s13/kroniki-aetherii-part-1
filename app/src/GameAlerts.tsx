@@ -18,8 +18,8 @@ export default function GameAlerts({ state, trade }: { state: State | null; trad
     if (!state) { setAlerts([]); seen.current.clear(); return; }
     if (old && old.code !== state.code) { setAlerts([]); seen.current.clear(); }
     const myTurn = state.players[state.active].id === state.me;
-    if (myTurn && ['roll', 'main', 'free-roads', 'robber', 'setup-settlement'].includes(state.phase) && (!old || old.code !== state.code || old.players[old.active].id !== old.me || (old.phase.startsWith('setup') && state.phase === 'roll'))) {
-      notify({ id: `${state.code}:turn:${state.turn}:${state.phase.startsWith('setup') ? state.revision : ''}`, type: 'turn', title: 'Twój ruch', text: state.phase.startsWith('setup') ? 'Wybierz miejsce dla osady i drogi.' : 'Wyspa czeka na Ciebie. Możesz wykonać swój ruch.' });
+    if (myTurn && ['roll', 'main', 'free-roads', 'setup-settlement'].includes(state.phase) && (!old || old.code !== state.code || old.players[old.active].id !== old.me || (old.phase.startsWith('setup') && state.phase === 'roll'))) {
+      notify({ id: `${state.code}:turn:${state.turn}:${state.phase.startsWith('setup') ? state.revision : ''}`, type: 'turn', title: 'Twój ruch', text: state.phase.startsWith('setup') ? 'Wybierz miejsce dla Strażnicy i Traktu.' : 'Aetheria czeka na Ciebie. Możesz wykonać swój ruch.' });
     }
     const present = new Set(state.offers.map(o => `${state.code}:offer:${o.id}`));
     setAlerts(xs => xs.filter(a => a.type === 'trade' ? present.has(a.id) : myTurn));

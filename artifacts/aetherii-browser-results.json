@@ -1,0 +1,17 @@
+{
+  "result": "passed",
+  "tests": [
+    "raid monitor",
+    "dwarven donation via real controls",
+    "public armor",
+    "resource subtraction",
+    "stone echo",
+    "one-use echo",
+    "four distinct watchtowers match scoreboard and board",
+    "five fantasy icons loaded",
+    "all terrain images loaded",
+    "320/393/1440px no overflow",
+    "mobile title and room tools separated"
+  ],
+  "errors": []
+}

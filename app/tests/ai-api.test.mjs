@@ -50,7 +50,7 @@ test('AI API: two players, automatic setup/turns and resume after restart withou
       else s = await waitFor(s => s.players[s.active].id === s.me);
     }
     assert.equal(s.phase, 'roll');
-    for (const p of s.players) assert.equal(s.board.vertices.filter(v => v.owner === p.id).length, 4);
+    for (const p of s.players) assert.equal(s.board.vertices.filter(v => v.owner === p.id).length, 2);
     s = await move(s);
     while (s.phase !== 'main') { s = await move(s); }
     const rollSummary = structuredClone(s.lastRoll);

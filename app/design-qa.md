@@ -1,75 +1,60 @@
-# Product Design verification
+# Product Design verification · Kroniki Aetherii
 
 final result: passed
 
-## Evidence
+## Target and evidence
 
-- Source visual truth: `/home/vs/.codex/generated_images/01a12282-6437-7020-a601-e5eb0f2bbaab/exec-b88fd166-377d-4e65-b8e4-e2ade2172f07.png` (first selected image, Papierowa wyspa).
-- Source pixels: 853 × 1844. Normalized proportionally to 393 × 850 for comparison; no device bezel in source.
-- Native browser implementation: `../artifacts/game-mobile.png`, 393 × 852 CSS and raster pixels, deviceScaleFactor 1, own turn before dice roll after four-player setup.
-- Same-input full-view evidence: `../artifacts/comparison-mobile.png`. Source left, rendered implementation right.
-- Focused control comparison: `../artifacts/comparison-controls.png`. Both control regions shown together; resource imagery, labels, type hierarchy, primary action and bottom navigation remain readable.
-- Desktop evidence: `../artifacts/game-desktop.png`, 1440 × 1000 viewport, full-page capture. Small phone: `../artifacts/game-small-mobile.png`, 320 × 740 viewport.
-- Protected template evidence: `../artifacts/template-mobile.png`, device screen element 393 × 852 at scale 1 inside a 1400 × 1200 browser viewport. All 28 protected runtime files pass integrity checks.
-- Functional browser evidence: `../artifacts/browser-results.json`, four isolated Chrome contexts, zero console/page errors in final run.
+This is a revision of the existing game artwork and rules, grounded in the original painted parchment interface. It is not a pixel clone of the former Catan screen. Intentional changes are the fantasy title, generated terrain and icons, faction labels and raid monitor. Board geometry, pan/zoom, player colors, typography families and the protected mobile device runtime remain the reference constraints.
 
-## Findings and comparison history
+- Original desktop source: repository HEAD `artifacts/game-desktop.png`, 1440 × 1000 viewport. Final implementation: `artifacts/aetherii-game-1440.png`, 1440 × 1000 viewport, deviceScaleFactor 1, full-page capture. Content/turn differs because new raid rules add the defense monitor; this is expected, not a fidelity defect.
+- Combined desktop comparison: `artifacts/aetherii-comparison-desktop.jpg`. Source and final implementation are in the same image input, proportionally downscaled for inspection. Review original screenshots for full detail.
+- Combined mobile iteration: `artifacts/aetherii-comparison-mobile.jpg`, pre-polish and final 320 px layouts in the same image input. Dice/turn/board content differs; header and resource label comparisons remain valid.
+- Final phone captures: `artifacts/aetherii-game-320.png`, `artifacts/aetherii-game-393.png`. Defense interaction: `artifacts/aetherii-defense-mobile.png`.
+- Existing mobile template: `artifacts/template-mobile.png`, unscaled 393 × 852 content-only capture. Runtime integrity passes for all 28 protected files.
+- Functional checks: `artifacts/browser-results.json`, `artifacts/ai-browser-results.json`, `artifacts/features-browser-results.json`, `artifacts/aetherii-browser-results.json`.
 
-Initial review found actionable issues and remained blocked:
+## Findings and fixes
 
-1. [P1] Settlement hit areas intercepted adjacent legal-road pointer clicks. Disabled pieces now have `pointer-events:none`; all sixteen setup placements and confirmations pass using actual pointer clicks.
-2. [P2] Enlarged desktop island extended below the board viewport. Desktop world now uses a separate 94% width; final desktop capture shows all 19 tiles and nine ports.
-3. [P2] Port labels extended beyond the narrow mobile viewport or under zoom controls. Port positions now clamp inside the viewport and shift away from the controls; recapture shows all labels.
-4. [P2] Room code competed with the title on small phones. Title sizes and 320px brand alignment were adjusted; final small-phone capture shows separate title, code and share targets without horizontal overflow.
-5. [P2] A composed resource illustration strip clipped sheep/wheat and showed a tinted rectangular background. Replaced it with five individually generated, transparent, independently fitted raster assets. Final focused comparison shows complete motifs.
-6. [P2] Primary mobile action was partly behind persistent navigation. Native board proportions were compacted; final 393px capture shows the complete action above navigation, while the document remains scrollable on shorter screens.
+Initial review was blocked by two P2 issues:
 
-Final review found no remaining actionable P0/P1/P2 issues.
+1. At 320 px the longer title overlapped room controls. Mobile title and subtitle now occupy a separate row above the room code/share controls. The browser test checks that their bounding boxes do not overlap at 320 and 393 px. Final combined evidence shows the complete title and separate controls.
+2. Full resource names wrapped inside narrow 320 px columns, while icons still showed old sheep and ordinary ore. The five newly generated transparent icons are now connected; compact labels (Drewno, Kamień, Zioła, Zapasy, Mitril) fit and expose full names in titles and resource selectors. Final comparison shows complete icons and readable labels.
+
+No remaining actionable P0/P1/P2 mismatch against the scoped reference constraints was found. Full-page mobile screenshots show the fixed bottom navigation within the long page; users can scroll content through the viewport. This is expected browser capture behavior.
 
 ## Required fidelity surfaces
 
-- **Typography:** Libre Baskerville for display/control headings, DM Sans for forms and supporting UI. Both self-hosted with Polish character subsets. Dark green hierarchy, serif player names, large resource counts and legible mobile copy match the selected direction.
-- **Spacing/layout rhythm:** illustrated header, player row, dominant ocean board, centered turn prompt, five-column resource hand, primary action and persistent menu preserve the source hierarchy. Compact board height and slightly larger touch controls are intentional adaptations to keep the main action visible. Desktop uses a board/control split because the source is mobile-only.
-- **Colors/tokens:** warm ivory parchment, dark green text/actions, ochre tile edges, muted blue ocean, and four distinct player colors. Error/disabled/active states are explicit.
-- **Asset quality:** newly generated woodcut/watercolor forest, pasture, wheat, clay, mountains, desert, ocean, coastal header and paper texture. Individual transparent resource illustrations avoid clipping/halos. Assets optimized to WebP. UI and functional piece markers use Radix icons; no handcrafted decorative SVG or placeholder image art.
-- **Copy/content:** Polish throughout. Live names, numbers, starting scores and hands differ from the static mock by design. Legal board topology, random terrain and server state determine tile numbers and piece placement. Empty, waiting, lobby, errors, selection and reconnect states have actionable copy.
+- **Fonts/typography:** Libre Baskerville and DM Sans preserved. New title fits mobile and desktop without colliding with controls. Resource and faction names are readable at the intended density.
+- **Spacing/layout:** 19 hexes and ports remain within the board viewport. Desktop retains board/action columns. Mobile header reserves a separate controls row. Screens at 320/393/1440 px have no horizontal document overflow.
+- **Colors/tokens:** Cream parchment, green actions and stable player colors preserved. Rust-red raid status is distinct from the neutral realm status; values and text communicate the same state without relying solely on color.
+- **Image quality:** Five separately generated terrain textures fill the existing hex masks without stretching. Five separately generated icons retain alpha. Blue Mithril and violet Herbs are distinct from forest, quarry and plains. The panoramic header retains a blank center under the title. Generated full-size images were inspected before proportional WebP conversion; all final images load successfully.
+- **Copy/content:** UI uses Kroniki Aetherii, Strażnice, Cytadele, Trakty and Karty Magii. The source rules link replaces REBEL. Visible defense values reflect the server snapshot. Implementation assumptions and asset prompts live in documentation rather than the main player flow.
 
-## Primary interactions tested
+## Validation
 
-Room creation, copying invitation field, joining from link in four independent contexts, host start, snake setup via real clicks, confirmations, zoom buttons, drag pan, touch pinch via Chrome touch events, center reset, development-card panel, refresh retaining identity, dice roll, turn transfer, no horizontal overflow at 320px, desktop rendering and preserved mobile template. API tests additionally cover capacity, private hands, unauthorized access, stale revisions, simultaneous actions, atomic rejection, persistence across server restart and static production routes.
+44 automated engine/AI/API/account tests, including raid timing, four faction powers, ties, penalties, conservation of resource cards, deferred victory, cataclysm and migration backup. Production build and protected-runtime integrity pass. Browser suites verify real pointer setup, room recovery, AI turns, accounts and notifications. Aetherii-specific browser checks verify donation controls, doubled dwarf armor, one-use Stone Echo, image loading and responsive title geometry.
 
-## Follow-up polish (P3)
+## Aktualizacja: strażnice frakcji
 
-- Standard icon piece markers have flatter shading than the wooden pieces in the mock. Their colors and positions represent actual playable state.
-- Extra Dziennik navigation exposes the session history and rules; source showed four core destinations.
-- Verify pinch feel on physical iOS/Android devices. Browser touch dispatch tests gesture behavior but cannot assess device-specific feel.
-- Docker configuration is supplied; Docker image build and public HTTPS deployment were not performed.
+Zastąpiono jednakowe domki czterema osobno wygenerowanymi ilustracjami frakcji i dodano te same ikony obok imion graczy. Obejrzano źródłowe grafiki oraz zrzuty `artifacts/watchtower-score-320.png`, `artifacts/watchtower-score-1440.png` i `artifacts/watchtower-board-393.png`. Czytelne sylwetki rozróżniają kamienną twierdzę, iglicę, drzewo i drewniany posterunek. Małe kolorowe podstawki wskazują właściciela. Brak nowych kolizji z numerami terenów i nazwami graczy. Test przeglądarkowy sprawdza osiem Strażnic i cztery ikony punktacji oraz zgodność ich ścieżek. Build i kontrola 28 chronionych plików przechodzą.
 
-## Implementation checklist
+## Aktualizacja: rozmiary plansz i mieszane pokoje
 
-- [x] Compare full screen and focused controls against selected source.
-- [x] Resolve visual/usability P1/P2 findings and recapture.
-- [x] Verify phone, small phone and desktop.
-- [x] Test four-player core flow and console errors.
-- [x] Preserve Product Design runtime and pass production build.
-- [x] Document public hosting requirement and persistence scope.
+Dodano wybór 19/23/25 heksów w formularzu nowej gry i lobby gospodarza oraz składy 1 człowiek + 3 SI, 2 ludzi + 2 SI, 3 ludzi + 1 SI. Dziennik zawiera faktyczne sumy produkcji każdego gracza po każdym rzucie. Istniejące partie zachowują planszę i obsadę.
 
-## AI two-player follow-up
+49 testów silnika/API/kont/SI przechodzi; nowe scenariusze sprawdzają geometrię wszystkich plansz, unikalność portów, legalne żetony, rezerwację miejsc, uprawnienia gospodarza, wszystkie mieszane składy, logowanie zerowej/ograniczonej produkcji oraz automatyczne ruchy trzech SI i wznowienie po restarcie. Build i kontrola chronionych plików przechodzą.
 
-Added a native mode selector with friends, human-versus-AI and two-human practice options. AI mode immediately starts a two-player training game. The header opens the game history instead of inviting another player to a full AI session; the player row identifies the computer with `(AI)` and uses the space available for two names. Existing board, textures, palette and navigation are retained.
+Test `test:party-browser` przechodzi dla trzech rozmiarów i trzech składów przy realnym rozstawianiu przez kliknięcia, automatycznych ruchach SI, odczycie dziennika i odświeżeniu. Zrzuty: `artifacts/party-19-*.png`, `party-23-*.png`, `party-25-*.png`, `party-log-*.png`. Wyniki: `artifacts/party-browser-results.json`.
 
-Evidence: `../artifacts/ai-mode-mobile.png`, `../artifacts/ai-game-mobile.png`, `../artifacts/ai-browser-results.json`. Chrome checks cover the selector, both human setup pairs via pointer, both automatic AI setup pairs, refresh, dice, automatic AI turn, history and 320px overflow. The four-human browser regression also passes. All 25 engine/API/AI tests pass, including three complete games to 10 points and automatic AI resumption after a server restart. AI decisions use the same private snapshot available to a human player. No new font suppressions or protected runtime changes.
+Dwie wykryte usterki wizualne naprawiono i ponownie sprawdzono: długie imiona zwężają się przy ikonach frakcji zamiast poszerzać dokument na 320 px; na większych wyspach porty są odsuwane prostopadle od lokalnej krawędzi wybrzeża, a zoom przeniesiono na morze w prawym górnym rogu. Test mierzy brak kolizji etykiet portów z numerami produkcji. Obejrzano finalne zrzuty 23/25 pól na telefonie i komputerze; nie stwierdzono nowych problemów z czytelnością numerów ani ładowaniem ilustracji.
 
-## Dice gains and four-settlement start
+## Aktualizacja: dodatkowe rzuty za dublety
 
-Two-player setup now uses four settlement/road pairs per player (1–2–2–1–1–2–2–1), with initial resources only from the last placement. Existing started sessions keep their stored setup order. The latest roll summary displays the current player's actual production below the dice, including zero gains; it survives turn changes, refresh and server restart. Backend snapshots expose only that player's gains. Instructions and README reflect the variant.
+Każda para jednakowych oczek pozostawia aktywnego gracza w fazie rzutu i pokazuje nagłówek „Dublet! Rzuć ponownie” oraz przycisk „Rzuć ponownie”. Handel, budowa, mobilizacja i koniec tury czekają na wynik bez pary. Obejrzano `artifacts/doubles-mobile.png`; zachowano istniejącą oprawę, planszę i pasek frakcji.
 
-Validation: all 28 tests pass, including two-player setup order, initial resource allocation, production blocked by robber, seven, bank shortage, private summaries and saved results after restart. Production build and all 28 protected runtime files pass. Chrome mobile check completes all four human placements and AI placements, asserts the roll summary, and completes an automatic AI turn without errors. Inspected `../artifacts/ai-game-mobile.png` for final layout.
+Przechodzi 55 testów silnika/API/SI, w tym sześć nowych scenariuszy: wielokrotne dublety, blokada pozostałych akcji, serializacja oczekującego rzutu i polityka SI, siódemka na końcu serii, niezmienione terminy najazdów i rund kary oraz niedobór banku podczas kolejnej produkcji. Nowy test `test:doubles-browser` potwierdza dwa dublety z rzędu, odświeżenie między rzutami, nieaktywne budowanie, odblokowanie po zwykłym wyniku i przekazanie tury. Przechodzi również test przeglądarkowy AI, build i kontrola chronionych plików.
 
-## Accounts, alerts, cards and board containment
 
-Preserved the parchment, illustrated island and display/body fonts. Added an account strip above the header, email/password account sheet, Google sign-in configuration state and account game list. Disabled construction options now retain full text contrast and state the reason they are unavailable. Development cards show descriptions even when unplayable; an expandable reference includes all five types. Popup alerts identify new turns and incoming offers, support dismissal and navigation to the offer, and avoid duplicate alerts during polling. Optional browser notifications are requested only after a user click, with in-app fallback.
+## Aktualizacja: puste pole
 
-Board content is clipped to `.board-world`; pan bounds derive from actual content, viewport and zoom dimensions and adapt on resize. Native and protected phone runtimes remain separate; fixed alerts stay outside the scrolling phone content. Final captures: `account-mobile.png`, `build-readable-mobile.png`, `card-descriptions-mobile.png`, `trade-alert-mobile.png`, `features-desktop.png` in `../artifacts/`. Reviewed mobile and desktop in a batched pass; corrected a shrinking card icon and moved notification controls into the action panel to remove excess page space.
-
-Evidence: `../artifacts/features-browser-results.json` covers registration/logout, new-device email login and game recovery, all five descriptions, disabled build readability, turn/trade popups, hidden-tab title, mocked browser Notification dispatch, deduplication, pan bounds and 320px/desktop. Both four-player and AI browser regressions pass. Engine/API/account tests cover hashing and private sessions, account room access, restart, OAuth state/PKCE, nonce/audience verification through a mocked Google library boundary, explicit linking, throttling, independent dice and drawing development cards without replacement. Actual Google login awaits the owner's OAuth credentials; no live Google account was used. Mechanical detector reported no findings. No new design suppressions.
+Przywrócono jedno Pustkowie bez numeru i produkcji na każdej nowej planszy 19/23/25 pól. Rozpoczęte partie zachowują układ. Czerwone 6 i 8 mają podpowiedź prawdopodobieństwa 5/36; wyjaśnienie dodano również do zasad. Przechodzi 56 testów, build i kontrola chronionych plików. Test przeglądarkowy potwierdza po jednym pustym polu i właściwą liczbę żetonów na wszystkich trzech rozmiarach, mieszane pokoje, produkcję i odświeżenie. Obejrzano zrzut `artifacts/party-19-1440.png`: Pustkowie jest widoczne jako piaskowy heks bez żetonu.

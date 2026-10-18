@@ -1,0 +1,26 @@
+[
+  {
+    "faction": "dwarves",
+    "prompt": "Use case: stylized-concept. Asset type: one transparent miniature watchtower game piece for Kroniki Aetherii. Reference image supplies the existing antique watercolor and thin dark ink style ONLY, do not draw rocks as the subject. Draw the DWARVES OF THE UNDERGROUND watchtower: a squat heavy hexagonal dark-stone fortified tower, broad stepped base, flat crenellated roof, brass reinforced arched entrance and two bright cyan mithril inlays. Distinct stocky silhouette, no tall spire. Consistent three-quarter isometric camera, full building, centered, occupies 85% of a 1024x1024 square. Warm hand-painted fantasy atlas illustration, strong simple forms designed to remain recognizable at 30 pixels. No tiny scenery or diorama, no terrain ground tile, no text, no people, no flags, no colored player circle, no border, no cast shadow beyond building. Actual transparent background. This is a single finished sprite, not a sheet or UI.",
+    "source": "/home/vs/.codex/generated_images/01a13987-f02d-70b1-99c9-b415365c246d/exec-1541e162-53ff-4105-b41d-2c60f5f551a5.png",
+    "file": "app/public/game/aetherii/watchtower-dwarves.webp"
+  },
+  {
+    "faction": "rock-elves",
+    "prompt": "Use case: stylized-concept. Asset type: one transparent miniature watchtower game piece for Kroniki Aetherii. Reference image supplies the existing antique watercolor and thin dark ink style ONLY, do not draw rocks as subject. Draw the ROCK ELVES watchtower: a single elegant narrow ivory limestone tower with a pointed faceted slate-blue crystal spire roof, tall pointed gothic entrance, two slender buttresses forming a graceful angular silhouette, a faint teal rune carved above door. Distinct tall pale geometric silhouette, unlike a squat dwarf fortress or wooden human tower. Three-quarter isometric camera, full building centered, occupies 85% of a 1024x1024 square. Warm hand-painted fantasy atlas illustration, strong simple readable forms at 30 pixels. No tiny scenery, no diorama or ground tile, no text, people, flags, colored player circle, border, or cast shadow beyond building. Actual transparent background. Single finished sprite, not a sheet or UI.",
+    "source": "/home/vs/.codex/generated_images/01a13987-f02d-70b1-99c9-b415365c246d/exec-90415f6c-e227-4210-9ad4-e33d15fd2568.png",
+    "file": "app/public/game/aetherii/watchtower-rock-elves.webp"
+  },
+  {
+    "faction": "forest-elves",
+    "prompt": "Use case: stylized-concept. Asset type: one transparent miniature watchtower game piece for Kroniki Aetherii. Reference image supplies the existing antique watercolor and thin dark ink style ONLY. Draw the FOREST ELVES watchtower: a living ancient thick twisting tree trunk with an elevated small timber lookout balcony wrapped around its upper trunk, a graceful broad leafy emerald canopy forming its roof, a tiny arched entry nestled among roots, a few muted violet flowers. Distinct organic branching green silhouette, not a stone tower or ordinary house. Three-quarter isometric camera, full self-contained building centered, occupies 85% of a 1024x1024 square. Warm hand-painted fantasy atlas illustration and thin dark ink contours, strong simplified forms readable at 30 pixels. No scenery, diorama or ground tile, no text, people, flags, colored player circle, border, or cast shadow beyond building. Actual transparent background. Single finished sprite, not a sheet or UI.",
+    "source": "/home/vs/.codex/generated_images/01a13987-f02d-70b1-99c9-b415365c246d/exec-19ba4601-9b07-4723-961e-6a5faccc65e6.png",
+    "file": "app/public/game/aetherii/watchtower-forest-elves.webp"
+  },
+  {
+    "faction": "humans",
+    "prompt": "Use case: stylized-concept. Asset type: one transparent miniature watchtower game piece for Kroniki Aetherii. Reference image supplies the existing antique watercolor and thin dark ink style ONLY. Draw the HUMANS OF THE PLAINS watchtower: a practical square oak timber lookout tower with visible broad cross-braced supports, a small warm terracotta pyramidal tiled roof, a short enclosed log palisade around its base and a stout wooden gate. Distinct warm brown angular scaffold silhouette, roof red-brown; no ordinary cottage, tree canopy or crystal spire. Three-quarter isometric camera, full self-contained building centered, occupies 85% of a 1024x1024 square. Warm hand-painted fantasy atlas illustration and fine dark ink contours, strong simple shapes readable at 30 pixels. No scenery, diorama or ground tile, no text, people, flags, colored player circle, border, or cast shadow beyond building. Actual transparent background. Single finished sprite, not a sheet or UI.",
+    "source": "/home/vs/.codex/generated_images/01a13987-f02d-70b1-99c9-b415365c246d/exec-4724de13-b9ec-486e-b07f-81f1d6cbeb9d.png",
+    "file": "app/public/game/aetherii/watchtower-humans.webp"
+  }
+]

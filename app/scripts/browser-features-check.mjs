@@ -42,8 +42,8 @@ try {
 
   // Controlled public/private snapshots exercise incoming events and rich cards.
   const g = createRoom('QA1234', 'Ala', true); g.players.push(player('Bartek', 1));
-  g.phase = 'roll'; g.turn = 1; g.robber = g.board.tiles.find(t => t.resource === 'desert').id;
-  g.players[0].cards = ['knight', 'roads', 'plenty', 'monopoly', 'point'].map((type, i) => ({ id: `card-${i}`, type, bought: 0 }));
+  g.phase = 'roll'; g.turn = 1; g.robber = null;
+  g.players[0].cards = ['ward', 'roads', 'plenty', 'monopoly', 'point'].map((type, i) => ({ id: `card-${i}`, type, bought: 0 }));
   const eventPage = await pageFor();
   await eventPage.addInitScript(() => { localStorage.setItem('aetherii:QA1234', 'fixture-token'); window.__notifications = []; class TestNotification { static permission = 'granted'; constructor(title, options) { window.__notifications.push({ title, ...options }); } close() {} } window.Notification = TestNotification; });
   await eventPage.route('**/api/rooms/QA1234', route => route.fulfill({ json: view(g, g.host) }));
@@ -56,7 +56,7 @@ try {
   await eventPage.getByRole('button', { name: 'Zamknij panel', exact: true }).click();
   await eventPage.getByRole('button', { name: 'Karty', exact: true }).click();
   assert.equal(await eventPage.locator('.card-description').count(), 5);
-  await eventPage.getByText('Opisy wszystkich kart rozwoju', { exact: true }).click();
+  await eventPage.getByText('Opisy wszystkich Kart Magii', { exact: true }).click();
   await eventPage.screenshot({ path: '../artifacts/card-descriptions-mobile.png', fullPage: true });
   await eventPage.getByRole('button', { name: 'Zamknij panel', exact: true }).click();
   await eventPage.evaluate(() => Object.defineProperty(document, 'hidden', { configurable: true, value: true }));

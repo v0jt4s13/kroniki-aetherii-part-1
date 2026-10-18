@@ -46,13 +46,17 @@ test('AI accepts useful funded offers but declines a harmful exchange', () => {
   assert.equal(bot.resources.ore, 1);
   act(g, g.host, 'offer', { give: { ore: 1 }, want: { wood: 3 } }); assert.equal(nextBotMove(g), null);
 });
-test('AI uses development cards and resolves robber before returning to dice', () => {
+test('AI contributes defensive magic during an active raid', () => {
   const g = setup(game()), bot = g.players[1]; g.active = 1; g.turn = 4;
-  bot.cards.push({ id: 'knight', type: 'knight', bought: 1 });
+  bot.cards.push({ id: 'ward', type: 'ward', bought: 1 });
+  const dice = [3, 4]; act(g, bot.id, 'roll', {}, () => dice.shift());
+  // Empty hands prevent discard interrupting this focused scenario.
+  for (const p of g.players) if (g.discard[p.id]) {
+    let n = g.discard[p.id]; const resources = {}; for (const r of RES) { resources[r] = Math.min(n, p.resources[r]); n -= resources[r]; }
+    act(g, p.id, 'discard', { resources });
+  }
   const m = nextBotMove(g); assert.equal(m.action, 'play'); act(g, m.playerId, m.action, m.payload);
-  assert.equal(g.phase, 'robber'); const r = nextBotMove(g); act(g, r.playerId, r.action, r.payload);
-  if (g.phase === 'steal') { const steal = nextBotMove(g); act(g, steal.playerId, steal.action, steal.payload); }
-  assert.equal(g.phase, 'roll'); assert.equal(bot.knights, 1);
+  assert.equal(g.raid.contributions[bot.id].armor, 2);
 });
 test('Bank exchange removes an unfunded offer before AI can accept it', () => {
   const g = game(); g.phase = 'main';
@@ -72,12 +76,12 @@ test('AI completes full games using only legal moves while conserving resources'
       act(g, move.playerId, move.action, move.payload); moves++;
       for (const r of RES) {
         assert.ok(g.bank[r] >= 0);
-        assert.equal(g.bank[r] + g.players.reduce((n, p) => n + p.resources[r], 0), 19);
+        assert.equal(g.bank[r] + g.players.reduce((n, p) => n + p.resources[r], 0) + Object.values(g.raid?.contributions || {}).reduce((n, c) => n + c.resources[r], 0), 19);
         assert.ok(g.players.every(p => p.resources[r] >= 0));
       }
     }
     assert.equal(g.phase, 'finished', `No winner after ${moves} moves / ${g.turn} turns`);
-    assert.ok(points(g, g.players.find(p => p.id === g.winner)) >= 10);
+    assert.ok(g.cataclysm || points(g, g.players.find(p => p.id === g.winner)) >= 10);
     assert.equal(nextBotMove(g), null);
   }
 });
