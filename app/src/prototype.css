@@ -87,7 +87,7 @@
 .text-button:disabled { opacity:.4; }
 .main-actions { display:grid; gap:0; }
 .entry-form { text-align:left; display:grid; gap:9px; margin:14px 0 1px; }
-.entry-form label { font:600 12px 'DM Sans',sans-serif; color:#4c5a42; }
+.entry-form label { font:600 16px 'DM Sans',sans-serif; color:#4c5a42; }
 .entry-form input:not([type=checkbox]),.select-label input { width:100%; min-height:44px; border:1px solid #cdbf9f; border-radius:10px; color:#203f2b; background:#fff9e9; padding:10px 12px; font:400 16px 'DM Sans',sans-serif; }
 .practice-option { display:flex; align-items:center; gap:6px; min-height:32px; flex-wrap:wrap; }
 .practice-option small { color:#756e5e; font-size:10px; }
@@ -106,16 +106,16 @@
 .board-loading { height:414px; display:grid; place-content:center; color:#174a32; }
 .toast { position:absolute; z-index:24; left:14px; right:14px; bottom:100px; border:1px solid #cabc9e; border-radius:12px; padding:12px 14px; background:#fff8e9; box-shadow:0 3px 12px #253d301f; font:500 12px/1.5 'DM Sans',sans-serif; text-align:center; pointer-events:none; }
 .bottom-sheet { background:#f8f0df; border:1px solid #dacbaf; box-shadow:0 -4px 26px #213e3024; }
-.sheet-title { font:700 21px/1.3 'Libre Baskerville',Georgia,serif; color:#173f30; padding-right:25px; }
+.sheet-title { font:700 24px/1.3 'Libre Baskerville',Georgia,serif; color:#173f30; padding-right:25px; }
 .sheet-handle { background:#baa98b; }
 .sheet-content { padding:0 18px 28px; }
-.game-sheet { display:grid; gap:13px; font-family:'DM Sans',sans-serif; font-size:14px; }
-.game-sheet p { color:#656452; font:400 13px/1.6 'DM Sans',sans-serif; }
-.game-sheet h3 { font:700 17px/1.4 'Libre Baskerville',Georgia,serif; margin:7px 0 0; color:#254b35; }
+.game-sheet { display:grid; gap:15px; font-family:'DM Sans',sans-serif; font-size:18px; line-height:1.45; }
+.game-sheet p { color:#656452; font:400 17px/1.5 'DM Sans',sans-serif; }
+.game-sheet h3 { font:700 21px/1.4 'Libre Baskerville',Georgia,serif; margin:7px 0 0; color:#254b35; }
 .sheet-close { position:absolute; top:31px; right:14px; display:grid; place-items:center; width:29px; height:29px; border:0; border-radius:50%; background:#e9dfc9; color:#37513c; }
 .invite-code { text-align:center; font:700 32px 'Libre Baskerville',Georgia,serif; padding:14px 0; letter-spacing:4px; }
-.select-label { display:grid; gap:6px; font:600 12px 'DM Sans',sans-serif; color:#4e5b42; min-width:0; }
-.select-label select { width:100%; min-height:43px; background:#fff9e9; color:#294c36; border:1px solid #cdbf9f; border-radius:8px; padding:8px; font:400 15px 'DM Sans',sans-serif; }
+.select-label { display:grid; gap:6px; font:600 16px 'DM Sans',sans-serif; color:#4e5b42; min-width:0; }
+.select-label select { width:100%; min-height:48px; background:#fff9e9; color:#294c36; border:1px solid #cdbf9f; border-radius:8px; padding:8px; font:400 17px 'DM Sans',sans-serif; }
 .trade-selects { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 .trade-offer { padding:13px 0; border-top:1px solid #d9cbb0; border-bottom:1px solid #d9cbb0; display:grid; gap:7px; }
 .bag-picker { margin:0; padding:0; border:0; }
@@ -135,8 +135,8 @@
 .build-icon { display:grid; place-items:center; width:35px; height:35px; background:#e5dfc5; border-radius:8px; }
 .build-icon svg { width:22px; height:22px; }
 .build-option>span:nth-child(2) { flex:1; display:grid; gap:5px; }
-.build-option strong { font:700 16px 'Libre Baskerville',Georgia,serif; }
-.build-option small { font-size:10px; }
+.build-option strong { font:700 18px 'Libre Baskerville',Georgia,serif; }
+.build-option small { font-size:16px; line-height:1.5; }
 .build-option>span:last-child { font-size:24px; }
 .empty-state { text-align:center; padding:25px 12px; display:grid; gap:10px; justify-items:center; }
 .empty-state>svg { width:35px; height:35px; color:#8a9577; }
@@ -144,8 +144,8 @@
 .development-card:disabled { opacity:1; color:#525947; background:#f3ead6; cursor:not-allowed; }
 .development-card>svg { width:28px; height:28px; flex-shrink:0; }
 .development-card>span { display:grid; gap:5px; }
-.development-card small { font-size:10px; }
-.card-description { font-size:14px; line-height:1.55; }
+.development-card small { font-size:14px; line-height:1.5; }
+.card-description { font-size:17px; line-height:1.55; }
 .card-guide { border-block:1px solid #d6cab0; padding:14px 0; }
 .card-guide summary { cursor:pointer; font-weight:600; color:#254d35; }
 .account-bar { grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:5px 12px; font:12px/1.4 'DM Sans',sans-serif; background:#efe3c9; }
@@ -154,10 +154,10 @@
 .account-panel { display:grid; gap:14px; }
 .account-panel p { overflow-wrap:anywhere; }
 .account-tabs { display:flex; gap:8px; border-bottom:1px solid #cdbf9f; }
-.account-tabs button { flex:1; padding:12px 5px; border:0; background:transparent; color:#525947; font:600 14px 'DM Sans',sans-serif; }
+.account-tabs button { flex:1; padding:12px 5px; border:0; background:transparent; color:#525947; font:600 16px 'DM Sans',sans-serif; }
 .account-tabs button[aria-pressed=true] { color:#174a32; border-bottom:2px solid #174a32; }
 .account-room { flex-direction:column; align-items:flex-start; gap:5px; text-align:left; border-radius:8px; }
-.account-room span { font:400 13px/1.5 'DM Sans',sans-serif; overflow-wrap:anywhere; }
+.account-room span { font:400 16px/1.5 'DM Sans',sans-serif; overflow-wrap:anywhere; }
 .google-login { text-decoration:none; }
 .game-alerts { position:fixed; z-index:25; top:calc(12px + env(safe-area-inset-top,0px)); right:12px; left:12px; max-width:380px; margin-left:auto; pointer-events:none; }
 .game-alert { display:flex; gap:10px; padding:14px; border:1px solid #9aab7c; border-radius:12px; background:#fff8e9; color:#173f30; box-shadow:0 5px 20px #173f3033; pointer-events:auto; font:14px/1.5 'DM Sans',sans-serif; }
@@ -175,14 +175,14 @@
 .error-message button { display:grid; place-items:center; margin-left:auto; min-width:28px; height:28px; border:0; background:transparent; color:inherit; }
 .game-log { display:grid; list-style:none; margin:0; padding:0; }
 .game-log li { display:grid; gap:5px; padding:13px 0; border-bottom:1px solid #dbcfb3; }
-.game-log small { color:#8b826d; font-size:10px; }
-.game-log span { font-size:13px; line-height:1.5; }
+.game-log small { color:#75694e; font-size:14px; }
+.game-log span { font-size:17px; line-height:1.5; }
 .rules { display:grid; gap:10px; }
-.rules a { color:#235c3c; font-size:13px; line-height:1.7; }
+.rules a { color:#235c3c; font-size:17px; line-height:1.7; }
 .dice-result { display:flex; gap:5px; align-items:center; justify-content:center; margin:9px 0 0; font-family:'DM Sans',sans-serif; }
 .dice-result>b { width:26px; height:27px; border-radius:5px; border:1px solid #c6b995; display:grid; place-items:center; background:#fff8e6; color:#30412e; font-size:17px; }
 .dice-result>span { margin-left:6px; font-size:11px; color:#736d5d; }
-.action-nudge { margin-top:12px!important; color:#32653f!important; font:600 12px 'DM Sans',sans-serif!important; }
+.action-nudge { margin-top:12px!important; color:#32653f!important; font:600 16px 'DM Sans',sans-serif!important; }
 .winner-heading { text-align:center; padding:20px 0; }
 .winner-heading h2 { font:700 25px 'Libre Baskerville',Georgia,serif; }
 .result-row { display:flex; justify-content:space-between; padding:13px 0; border-bottom:1px solid #d8cbb0; }
@@ -207,11 +207,11 @@
 .realm-defense .secondary { width:100%; margin-top:9px; min-height:42px; font-size:14px; }
 .realm-defense small { display:block; margin-top:8px; color:#615c50; }
 .defense-warning { color:#8d3827; margin-top:8px!important; }
-.defense-row { display:flex; gap:12px; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid #d6c9ad; font:400 14px/1.5 'DM Sans',sans-serif; }
+.defense-row { display:flex; gap:12px; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid #d6c9ad; font:400 17px/1.5 'DM Sans',sans-serif; }
 .defense-row small { display:block; color:#756e5e; }
 .defense-row b { white-space:nowrap; }
 .resources span { overflow-wrap:anywhere; }
-.select-label>small { color:#5a6655; font:400 12px/1.5 'DM Sans',sans-serif; }
+.select-label>small { color:#5a6655; font:400 14px/1.5 'DM Sans',sans-serif; }
 .native-game .brand h1 { font-size:29px; }
 .native-game .brand { padding-top:16px; }
 .native-game .resources span { font-size:10px; line-height:1.3; }
@@ -270,21 +270,53 @@
 
 .traffic-report { padding:6px 12px; text-align:center; font-size:11px; line-height:1.5; color:#59472e; background:#eee3cb; border-bottom:1px solid #d8c6a5; overflow-wrap:anywhere; }
 
-/* Trade quantities and resource names should fill the sheet, including on phones. */
-.trade-sheet { font-size:18px; line-height:1.45; }
-.native-sheet:has(.trade-sheet) .sheet-title,
-.bottom-sheet:has(.trade-sheet) .sheet-title { font-size:24px; }
-.trade-sheet h3 { font-size:21px; }
-.trade-sheet p { font-size:17px; line-height:1.5; }
-.trade-sheet .select-label { font-size:16px; }
-.trade-sheet .select-label select { min-height:48px; font-size:17px; }
-.trade-sheet .bag-picker legend { font-size:18px; }
-.trade-sheet .bag-picker>div { min-height:54px; }
-.trade-sheet .bag-picker>div>span { min-width:0; }
-.trade-sheet .bag-picker small { font-size:14px; }
-.trade-sheet .bag-picker b { min-width:24px; font-size:20px; font-variant-numeric:tabular-nums; }
-.trade-sheet .bag-picker button { flex-shrink:0; width:40px; height:40px; }
-.trade-sheet>.primary,.trade-sheet>.secondary,.trade-sheet .trade-offer button { font-size:18px; }
+/* Emphasize the selected amount and available stock in player trades. */
+.trade-sheet .bag-picker small { font-size:18px; font-weight:600; color:#5a634d; white-space:nowrap; }
+.trade-sheet .bag-picker b { min-width:32px; font-size:26px; font-variant-numeric:tabular-nums; }
 @media(max-width:420px) {
   .trade-sheet .trade-selects { grid-template-columns:1fr; }
+}
+
+/* Reading and action text share the established trade-sheet type scale. */
+.catan-game .turn-panel>p,.catan-game .roll-gains p { font-size:17px; line-height:1.5; }
+.catan-game .roll-gains small { font-size:14px; }
+.catan-game .realm-defense { font-size:17px; }
+.catan-game .realm-defense small { font-size:14px; }
+.catan-game .realm-defense .secondary { font-size:17px; }
+.game-sheet .primary,.game-sheet .secondary { font-size:18px; line-height:1.4; }
+.game-sheet .text-button,.catan-game .text-button { font-size:16px; line-height:1.4; }
+.game-sheet .subtle,.catan-game .subtle { font-size:14px; line-height:1.5; }
+.game-sheet .entry-form input,.game-sheet .select-label input { font-size:17px; }
+.game-sheet .bag-picker legend { font-size:18px; }
+.game-sheet .bag-picker>div { min-height:54px; }
+.game-sheet .bag-picker>div>span { min-width:0; }
+.game-sheet .bag-picker button { flex-shrink:0; width:40px; height:40px; }
+.game-sheet .bag-picker b { font-variant-numeric:tabular-nums; }
+.game-sheet:not(.trade-sheet) .bag-picker small { font-size:14px; }
+.game-sheet:not(.trade-sheet) .bag-picker b { min-width:28px; font-size:22px; }
+.game-sheet .select-label select { font-size:17px; }
+.catan-game .entry-form input { font-size:17px; }
+.game-sheet .defense-row { flex-wrap:wrap; }
+.game-sheet .defense-row small { font-size:14px; }
+.game-alert { font-size:16px; }
+.game-alert strong { font-size:18px; }
+.game-alert .text-button { font-size:16px; }
+.toast,.error-message { font-size:16px; }
+.notification-setting,.notification-setting small { font-size:14px; line-height:1.5; }
+.catan-game .account-bar,.catan-game .account-bar button { font-size:14px; }
+.catan-game .account-bar button { flex-shrink:1; }
+.catan-game .room-code { font-size:14px; }
+.catan-game .players .player strong { font-size:14px; line-height:1.4; }
+.catan-game .players .player small { font-size:12px; }
+.catan-game .players .player b { font-size:24px; }
+.catan-game .resources b { font-size:28px; }
+.catan-game .resources span { font-size:14px; }
+.game-nav>button span { font-size:14px; }
+.catan-game .dice-result>b { width:32px; height:32px; font-size:20px; }
+.catan-game .dice-result>span { font-size:15px; }
+.catan-game .board-instruction { font-size:13px; }
+.traffic-report { font-size:14px; }
+@media(max-width:420px) {
+  .players:has(.player:nth-child(3)) { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px 0; }
+  .players:has(.player:nth-child(3)) .player:nth-child(even) { border-right:0; }
 }
