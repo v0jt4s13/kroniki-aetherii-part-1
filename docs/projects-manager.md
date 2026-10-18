@@ -2,7 +2,45 @@
 
 Przygotowana konfiguracja projektu `kroniki-aetherii` znajduje się w repozytorium
 `ops02/projects_manager`, w `production_projects/kroniki-aetherii.env`.
-Pełna procedura jest w jego `docs/kroniki-aetherii.md`.
+Konfiguracja i pierwsze wdrożenie: jego `docs/kroniki-aetherii.md`; wdrożenie nowej wersji
+na serwerze (kopia danych, tag SHA, kontrola, wycofanie): `docs/kroniki-aetherii-wdrozenie.md`.
+
+## Budowa i publikacja obrazu
+
+Manager nie buduje obrazu gry. Na maszynie z Dockerem, z katalogu tego repozytorium, po
+zatwierdzeniu i spushowaniu zmian na `main`:
+
+```bash
+git fetch -q && git status -sb | head -2          # main...origin/main, bez "ahead"
+git log --oneline -1                               # to ma być wersja do wdrożenia
+IMAGE=ghcr.io/v0jt4s13/kroniki-aetherii-part-1; TAG=$(git rev-parse --short=12 HEAD); echo "TAG=$TAG"
+
+docker build --pull --no-cache -t "$IMAGE:$TAG" -t "$IMAGE:latest" . 2>&1 | tail -3
+docker run --rm "$IMAGE:$TAG" grep -o 'src="[^"]*"' dist/client/play.html      # ma być ./assets/game-...
+docker run --rm "$IMAGE:$TAG" grep -c 'aetheriiTheme' dist/client/play.html    # ma być 1 (skrypt motywu)
+```
+
+Gdy `play.html` ma `/assets/...` (ścieżka bezwzględna), nie publikuj: strona pod prefiksem
+szuka plików w `ops02.jdblayer.com/assets/` i dostaje 404 od moderacji.
+
+```bash
+docker login ghcr.io -u v0jt4s13      # PAT (classic) z write:packages
+docker push "$IMAGE:$TAG" && docker push "$IMAGE:latest"
+docker buildx imagetools inspect "$IMAGE:$TAG" | sed -n 3p     # digest tagu SHA
+docker buildx imagetools inspect "$IMAGE:latest" | sed -n 3p   # powinien być ten sam
+```
+
+Jako hasło wklej GitHub Personal Access Token (classic), nie hasło do konta. Do publikacji
+wymaga `write:packages`, do pobierania prywatnego obrazu na serwerze wystarczy
+`read:packages` i dostęp do pakietu. Token fine-grained nie działa z GHCR przy tym sposobie
+logowania. Nie zapisuj tokenu w repozytorium. Buduj dla architektury serwera ops02
+(`uname -m` na serwerze); przy innej architekturze maszyny budującej użyj `docker buildx`
+z odpowiednią platformą.
+
+Wdrażaj po **tagu SHA**, nie po `latest`: przy wdrożeniu 2026-10-18 `docker push` dla
+`latest` zgłosił nowy digest, a rejestr nadal zwracał stary obraz, więc serwer pobierał starą
+wersję bez błędu. Tag SHA służy też do powrotu do poprzedniego obrazu. Dalszy ciąg (serwer):
+`ops02/projects_manager/docs/kroniki-aetherii-wdrozenie.md`.
 
 - Serwer: ops02; adres: `ops02.jdblayer.com/kroniki-aetherii`.
 - Obraz: `ghcr.io/v0jt4s13/kroniki-aetherii-part-1:latest`, budowany z głównego Dockerfile.
