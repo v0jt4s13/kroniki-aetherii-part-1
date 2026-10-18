@@ -49,3 +49,19 @@
 [data-aetherii-theme=dark] .faction-text small { color:#c4bca8; }
 [data-aetherii-theme=dark] .faction-check { border-color:#8d7e5a; }
 [data-aetherii-theme=dark] .faction-card:has(input:checked) .faction-check { border-color:#e2c06a; background-color:#e2c06a; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='%2314161f' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 7.5l3 3 6-7'/%3E%3C/svg%3E"); }
+
+[data-aetherii-theme=dark] .rules-hero { background:#232739; border-color:#8d7e5a; }
+[data-aetherii-theme=dark] .rules-goal { color:#e2c06a; }
+[data-aetherii-theme=dark] .rules-section { background:#1b1e2b; border-color:#5d5546; }
+[data-aetherii-theme=dark] .rules-icon { background:#333d32; color:#e2c06a; }
+[data-aetherii-theme=dark] .rules-chips li { background:#232739; border-color:#8d7e5a; color:#e2c06a; }
+[data-aetherii-theme=dark] .rules-steps li { background:#232739; color:#e9e2d0; }
+[data-aetherii-theme=dark] .rules-steps b { background:#e2c06a; color:#14161f; }
+[data-aetherii-theme=dark] .rules .rules-callout { background:#232739; }
+[data-aetherii-theme=dark] .rules-faction { background:#232739; border-color:#5d5546; }
+[data-aetherii-theme=dark] .rules-card,[data-aetherii-theme=dark] .rules-costs li { background:#232739; }
+[data-aetherii-theme=dark] .rules-card strong,[data-aetherii-theme=dark] .rules-costs strong { color:#f1dfaf; }
+[data-aetherii-theme=dark] .rules-card span { color:#c4bca8; }
+[data-aetherii-theme=dark] .rules-res { background:#14161f; border-color:#5d5546; }
+[data-aetherii-theme=dark] .rules-costs em { background:#e2c06a; color:#14161f; }
+[data-aetherii-theme=dark] .rules a.rules-link { color:#e2c06a; border-color:#8d7e5a; }
