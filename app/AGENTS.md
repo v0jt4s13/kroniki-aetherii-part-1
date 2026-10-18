@@ -21,6 +21,9 @@
 
 - Use the approved trade-sheet reading scale throughout game content: 18px body, 17px descriptions, 16px form labels, 14px secondary text, 21px section headings and 24px sheet titles. Trade quantities are 26px; available stock is 18px. Keep narrow layouts readable without horizontal overflow.
 
+- Solo AI supports one human plus 1–3 bots, with unique factions and two starting watchtowers/roads per player in every party size.
+
+
 ## Prototype Instructions
 
 In ChatGPT Work Mode, run `sites-preview start "$PWD"`, open `http://terminal.local:4173/` in the cloud browser, and verify the rendered app and its primary interactions. Keep that preview open and tell the user to inspect it in the cloud browser; do not present the local URL as a user-facing chat link. In Codex Desktop, run the local server yourself, open the preview in the in-app browser, and provide the clickable local URL. Do not deploy to Sites unless the user explicitly asks to share, publish, or deploy. Do not give the user server-start instructions when you can run it.

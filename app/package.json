@@ -14,7 +14,7 @@
     "prebuild": "npm run check:runtime",
     "build": "tsc && vite build --config vite.game.config.ts && node scripts/prepare-sites-build.mjs",
     "start": "node server/start.mjs --production",
-    "test": "node --test tests/runtime-env.test.mjs tests/traffic.test.mjs tests/traffic-api.test.mjs tests/doubles.test.mjs tests/party-api.test.mjs tests/aetherii.test.mjs tests/engine.test.mjs tests/api.test.mjs tests/bot.test.mjs tests/ai-api.test.mjs tests/accounts-api.test.mjs tests/accounts.test.mjs",
+    "test": "node --test tests/solo-ai.test.mjs tests/runtime-env.test.mjs tests/traffic.test.mjs tests/traffic-api.test.mjs tests/doubles.test.mjs tests/party-api.test.mjs tests/aetherii.test.mjs tests/engine.test.mjs tests/api.test.mjs tests/bot.test.mjs tests/ai-api.test.mjs tests/accounts-api.test.mjs tests/accounts.test.mjs",
     "test:doubles-browser": "node scripts/browser-doubles-check.mjs",
     "test:party-browser": "node scripts/browser-party-check.mjs",
     "test:aetherii-browser": "node scripts/browser-aetherii-check.mjs",

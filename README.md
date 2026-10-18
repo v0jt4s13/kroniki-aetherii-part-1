@@ -34,7 +34,7 @@ Domyślny adres: `http://localhost:4173`. W sieci lokalnej użyj adresu IP kompu
 
 **Ze znajomymi**: wybierz wielkość planszy i obsadę pokoju, utwórz go i wyślij link. Dostępne są 2–4 osoby bez SI oraz pełne składy czteroosobowe: **1 człowiek + 3 SI**, **2 ludzi + 2 SI**, **3 ludzi + 1 SI**. Gospodarz może zmieniać planszę i obsadę w lobby. Przy składzie mieszanym start wymaga kompletu zadeklarowanych osób; pozostałe miejsca są zarezerwowane dla SI. Komputerowi gracze dołączają przy starcie z wolnymi frakcjami. Każda frakcja występuje raz. Zajętą frakcję przy dołączaniu zastępuje pierwsza dostępna; przed startem można zmienić ją w lobby.
 
-**Z AI**: wybierz frakcję i „Zagraj z AI”. Komputer rozstawia budowle, handluje, mobilizuje obronę i używa Magii. Korzysta z tych samych publicznych danych i własnej ręki co człowiek, bez zewnętrznej usługi AI. Rozgrywkę można wznowić po odświeżeniu i restarcie serwera.
+**Z AI**: wybierz 1–3 przeciwników SI, frakcję i „Zagraj z AI”. Komputer rozstawia budowle, handluje, mobilizuje obronę i używa Magii. Korzysta z tych samych publicznych danych i własnej ręki co człowiek, bez zewnętrznej usługi AI. Rozgrywkę można wznowić po odświeżeniu i restarcie serwera.
 
 ## Konta i zapis
 

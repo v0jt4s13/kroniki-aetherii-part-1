@@ -130,7 +130,12 @@ const server = http.createServer(async (req, res) => {
         if (user) g.players[0].accountId = user.id;
         if (body.ai === true) {
           g.ai = true;
-          const bot = player('Komputer', 1); assignFaction(g, bot); bot.bot = true; bot.token = null; g.players.push(bot);
+          const aiCount = body.aiCount === undefined ? 1 : body.aiCount;
+          if (!Number.isInteger(aiCount) || aiCount < 1 || aiCount > 3) throw new Error('Wybierz od 1 do 3 przeciwników SI.');
+          for (let i = 1; i <= aiCount; i++) {
+            const bot = player(aiCount === 1 ? 'Komputer' : `Komputer ${i}`, i);
+            assignFaction(g, bot); bot.bot = true; bot.token = null; g.players.push(bot);
+          }
           act(g, g.host, 'start'); g.revision++;
         }
         rooms[code] = g; save();
