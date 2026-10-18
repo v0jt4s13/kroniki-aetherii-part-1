@@ -149,7 +149,7 @@
 .card-guide { border-block:1px solid #d6cab0; padding:14px 0; }
 .card-guide summary { cursor:pointer; font-weight:600; color:#254d35; }
 .account-bar { grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:5px 12px; font:12px/1.4 'DM Sans',sans-serif; background:#efe3c9; }
-.account-bar>span { min-width:0; overflow-wrap:anywhere; }
+.account-bar>span { min-width:0; flex:1 1 auto; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .account-bar button { flex-shrink:0; font-size:12px; padding:4px; }
 .account-panel { display:grid; gap:14px; }
 .account-panel p { overflow-wrap:anywhere; }
@@ -231,7 +231,7 @@
 @media(max-width:849px) {
   .game-header,.native-game .game-header { height:112px; padding-top:3px; }
   .brand,.native-game .brand { max-width:100%; margin:0; padding:3px 8px 0; }
-  .brand h1,.native-game .brand h1 { font-size:clamp(23px,6.5vw,30px); white-space:nowrap; letter-spacing:-1px; }
+  .brand h1,.native-game .brand h1 { font-size:clamp(28px,9vw,40px); white-space:nowrap; letter-spacing:-1px; }
   .room-tools,.native-game .room-tools { top:auto; bottom:5px; right:10px; }
   .resources span,.native-game .resources span { font-size:11px; overflow-wrap:normal; }
 }
@@ -259,7 +259,7 @@
 /* Long player names must fit beside faction crests on narrow phones. */
 .player>span:not(.player-crest) { min-width:0; }
 .player>span:not(.player-crest)>strong { max-width:100%; }
-.player-faction { overflow-wrap:anywhere; }
+.player-faction { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 /* Expanded coasts use the clear sea in the upper-right for zoom controls. */
 .board-viewport.expanded-board .zoom-controls { top:5px; bottom:auto; right:8px; flex-direction:row; gap:5px; }
 .board-viewport.expanded-board .zoom-controls button { width:32px; height:32px; }
@@ -304,7 +304,7 @@
 .toast,.error-message { font-size:16px; }
 .notification-setting,.notification-setting small { font-size:14px; line-height:1.5; }
 .aetherii-game .account-bar,.aetherii-game .account-bar button { font-size:14px; }
-.aetherii-game .account-bar button { flex-shrink:1; }
+.aetherii-game .account-bar button { flex-shrink:0; white-space:nowrap; }
 .aetherii-game .room-code { font-size:14px; }
 .aetherii-game .players .player strong { font-size:14px; line-height:1.4; }
 .aetherii-game .players .player small { font-size:12px; }

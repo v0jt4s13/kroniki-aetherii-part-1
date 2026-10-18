@@ -1,5 +1,4 @@
-.theme-bar { grid-column:1/-1; display:flex; justify-content:flex-end; padding:4px 12px; background:#efe3c9; }
-.theme-bar .theme-toggle { display:inline-flex; align-items:center; gap:7px; min-height:36px; padding:5px 10px; border:1px solid #b8baa1; border-radius:8px; background:transparent; color:#254b35; font:600 14px/1.4 'DM Sans',sans-serif; }
+.account-bar .theme-toggle { display:inline-flex; flex:0 0 auto; align-items:center; justify-content:center; width:36px; min-height:36px; padding:0; border:1px solid #b8baa1; border-radius:8px; background:transparent; color:#254b35; font:600 14px/1.4 'DM Sans',sans-serif; }
 .theme-toggle svg { width:18px; height:18px; }
 
 /* Only game-owned surfaces change; terrain and parchment number tokens stay readable. */
@@ -8,7 +7,7 @@
 [data-aetherii-theme=dark] .aetherii-scroll { background:#14161f; color:#e9e2d0; }
 [data-aetherii-theme=dark] .aetherii-game { background:#14161f; color:#e9e2d0; }
 [data-aetherii-theme=dark] :is(.aetherii-game,.game-sheet,.game-nav,.toast) { --ink:#e9e2d0; --paper:#1b1e2b; --muted:#c4bca8; color:#e9e2d0; }
-[data-aetherii-theme=dark] :is(.native-sheet,.bottom-sheet,.game-nav,.toast,.game-alert,.traffic-report,.account-bar,.theme-bar) { background:#1b1e2b; color:#e9e2d0; border-color:#5d5546; }
+[data-aetherii-theme=dark] :is(.native-sheet,.bottom-sheet,.game-nav,.toast,.game-alert,.traffic-report,.account-bar) { background:#1b1e2b; color:#e9e2d0; border-color:#5d5546; }
 [data-aetherii-theme=dark] .native-sheet-overlay { background:#05060acc; }
 [data-aetherii-theme=dark] .game-header { background-image:linear-gradient(#14161f88,#14161fc9),url('/game/aetherii/header.webp'); }
 [data-aetherii-theme=dark] :is(.brand h1,.brand>span,.sheet-title,.game-sheet h3,.turn-panel h2,.winner-heading h2,.card-guide summary) { color:#e2c06a; }

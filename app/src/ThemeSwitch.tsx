@@ -13,5 +13,6 @@ export default function ThemeSwitch() {
     document.querySelector<HTMLMetaElement>('meta[name=theme-color]')?.setAttribute('content', theme === 'dark' ? '#14161f' : '#f5eddb');
     try { localStorage.setItem('aetherii:theme', theme); } catch { /* Switching also works without storage. */ }
   }, [theme]);
-  return <div className="theme-bar"><button type="button" className="theme-toggle" aria-pressed={theme === 'dark'} aria-label={theme === 'dark' ? 'Włącz jasny motyw' : 'Włącz ciemny motyw'} onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}>{theme === 'dark' ? <SunIcon/> : <MoonIcon/>}{theme === 'dark' ? 'Jasny motyw' : 'Ciemny motyw'}</button></div>;
+  const label = theme === 'dark' ? 'Włącz jasny motyw' : 'Włącz ciemny motyw';
+  return <button type="button" className="theme-toggle" aria-pressed={theme === 'dark'} aria-label={label} title={label} onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}>{theme === 'dark' ? <SunIcon/> : <MoonIcon/>}</button>;
 }

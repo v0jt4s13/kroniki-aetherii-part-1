@@ -35,7 +35,8 @@ export default function RaidEffects({ state, preview }: { state: State; preview:
       // Account for the scaled device preview as well as the native page layout.
       const scaleX = game.width / host.offsetWidth || 1, scaleY = game.height / host.offsetHeight || 1;
       const size = Math.max(70, Math.min(100, board.clientWidth * .18));
-      const left = (island.left - game.left) / scaleX + 8, top = (island.top - game.top) / scaleY + 8;
+      // The dragon is square; it settles in the bottom-left corner of the board viewport.
+      const left = (island.left - game.left) / scaleX + 8, top = (island.bottom - game.top) / scaleY - size - 14;
       setFlight({ host, style: {
         left: `${left}px`, top: `${top}px`, width: `${size}px`,
         '--dragon-from-x': `${(threat.left + threat.width / 2 - game.left) / scaleX - left - size / 2}px`,

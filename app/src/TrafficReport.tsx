@@ -5,7 +5,8 @@ type Report = { online: number; unique30d: number };
 export default function TrafficReport() {
   const [report, setReport] = useState<Report | null>(null);
   useEffect(() => {
-    const tab = crypto.randomUUID();
+    // randomUUID exists only in secure contexts; plain http on a LAN address needs the fallback.
+    const tab = crypto.randomUUID?.() ?? Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join('');
     let stopped = false;
     let running = false;
     let visited = false;
