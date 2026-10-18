@@ -63,7 +63,7 @@ export default function Prototype() {
     }
     poll(); return () => { stopped = true; clearTimeout(timer); };
   }, [token, code]);
-  useEffect(() => { if (!notice) return; const id = setTimeout(() => setNotice(''), 4500); return () => clearTimeout(id); }, [notice]);
+  useEffect(() => { if (!notice) return; const id = setTimeout(() => setNotice(''), Math.min(15000, Math.max(4500, notice.length * 45))); return () => clearTimeout(id); }, [notice]);
   async function command(action: string, payload: unknown = {}, close = true) {
     if (busyRef.current || !stateRef.current) return false;
     busyRef.current = true; setBusy(true); setError('');
@@ -96,6 +96,17 @@ export default function Prototype() {
     for (const key of Object.keys(localStorage)) if (key.startsWith('aetherii:') && key !== 'aetherii:name') localStorage.removeItem(key);
     setToken(''); setCode(''); setState(null); setName(''); setAccount(a => ({ ...a, user: null, rooms: [] }));
     setPanel(null); history.replaceState({}, '', location.pathname);
+  }
+  // Player tap: where the points come from and whether they can be lost (they cannot: only Roads and resources are at risk).
+  function playerInfo(p: State['players'][number]) {
+    const basics = `${p.name} · ${p.resourceCount} surowców · ${p.cardCount} Kart Magii · ${factions[p.faction]?.name}`;
+    if (!state || state.phase === 'lobby') return basics;
+    const owned = (level: number) => state.board.vertices.filter(v => v.owner === p.id && v.level === level).length;
+    const watchtowers = owned(1), citadels = owned(2), chronicles = Math.max(0, p.points - watchtowers - 2 * citadels - p.heroPoints);
+    const parts = [`Strażnice ${watchtowers} × 1`, `Cytadele ${citadels} × 2`, `Bohater Aetherii ${p.heroPoints} × 1 (największy wkład w obronie)`];
+    if (chronicles) parts.push(`Kroniki Chwały ${chronicles} × 1`);
+    const hidden = p.id !== state.me && state.phase !== 'finished' ? ' Ukryte Kroniki Chwały nie są wliczone.' : '';
+    return `${basics}\n${p.points} PZ z 10: ${parts.join(' + ')} PZ.${hidden}\nPZ nie da się stracić: Strażnice, Cytadele i PZ Bohatera są trwałe, a najazd odbiera tylko Trakty lub surowce. Kataklizm kończy grę bez zwycięzcy.`;
   }
   // A room link that no longer works (expired, game already running, full): leave it and offer a fresh game.
   const roomUnavailable = Boolean(initialCode && !state && error);
@@ -143,7 +154,7 @@ export default function Prototype() {
         <div className="account-bar"><span>{account.user ? `Witaj, ${account.user.name}` : 'Graj jako gość lub zapisz grę na koncie'}</span><button className="text-button" onClick={() => open('account')}>{account.user ? 'Moje konto' : 'Zaloguj / załóż konto'}</button><ThemeSwitch/></div>
         <TrafficReport/>
         <header className="game-header"><div className="brand"><h1>Kroniki Aetherii</h1><span>KORONA I CIEŃ</span></div><div className="room-tools">{state?.ai ? <button className="room-code" aria-label="Dziennik gry z AI" onClick={() => open('history')}>Ty + {state.botCount} SI<TimerIcon/></button> : state ? <><button className="room-code" aria-label="Kod pokoju i link zaproszenia" onClick={() => open('invite')}>{state.code}<CopyIcon/></button><button className="share-button" aria-label="Udostępnij grę" onClick={share}><Share2Icon/></button></> : <button className="share-button" aria-label="Zasady gry" onClick={() => open('rules')}><InfoCircledIcon/></button>}</div></header>
-        <section className="players" aria-label="Gracze">{(state?.players || preview?.players || []).map(p => <button className={`player ${state && current?.id === p.id && state.phase !== 'lobby' ? 'active-player' : ''}`} key={p.id} onClick={() => { setNotice(`${p.name} · ${p.resourceCount} surowców · ${p.cardCount} Kart Magii · ${factions[p.faction]?.name} · Bohater Aetherii: ${p.heroPoints} PZ`); }}><span className="player-crest" style={{ '--piece-color': p.color } as CSSProperties}><img src={watchtowerImage(p.faction)} alt={`Strażnica: ${factions[p.faction].name}`} draggable={false}/></span><span><strong>{p.name} {p.bot ? <small>(AI)</small> : state && p.id === state.me && <small>(Ty)</small>}</strong><small className="player-faction">{factions[p.faction]?.name}</small><b>{p.points} <small>PZ</small></b></span></button>)}{state?.phase === 'lobby' && <>{Array.from({ length: Math.max(0, state.humanLimit - humans) }, (_, i) => <button key={i} className="player vacant-player" onClick={() => open('invite')}><PlusIcon/><span>Zaproś</span></button>)}{Array.from({ length: state.botCount }, (_, i) => <div key={`bot-${i}`} className="player bot-seat"><span><strong>SI {i + 1}</strong><small>Dołączy przy starcie</small></span></div>)}</>}</section>
+        <section className="players" aria-label="Gracze">{(state?.players || preview?.players || []).map(p => <button className={`player ${state && current?.id === p.id && state.phase !== 'lobby' ? 'active-player' : ''}`} key={p.id} onClick={() => setNotice(playerInfo(p))}><span className="player-crest" style={{ '--piece-color': p.color } as CSSProperties}><img src={watchtowerImage(p.faction)} alt={`Strażnica: ${factions[p.faction].name}`} draggable={false}/></span><span><strong>{p.name} {p.bot ? <small>(AI)</small> : state && p.id === state.me && <small>(Ty)</small>}</strong><small className="player-faction">{factions[p.faction]?.name}</small><b>{p.points} <small>PZ</small></b></span></button>)}{state?.phase === 'lobby' && <>{Array.from({ length: Math.max(0, state.humanLimit - humans) }, (_, i) => <button key={i} className="player vacant-player" onClick={() => open('invite')}><PlusIcon/><span>Zaproś</span></button>)}{Array.from({ length: state.botCount }, (_, i) => <div key={`bot-${i}`} className="player bot-seat"><span><strong>SI {i + 1}</strong><small>Dołączy przy starcie</small></span></div>)}</>}</section>
         {!connected && token && <p className="connection-message" role="status"><ReloadIcon/> Ponawiam połączenie…</p>}
         {s ? <Board state={s} preview={!state} mode={effectiveMode} choose={(type, id) => { if (busy) return; setTarget({ type, id }); open('confirm'); }}/> : <div className="board-loading"><ReloadIcon/> Przygotowuję wyspę…</div>}
         <section className="turn-panel" aria-label="Twoje akcje">
