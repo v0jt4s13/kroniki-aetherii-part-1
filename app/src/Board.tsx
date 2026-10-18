@@ -52,14 +52,7 @@ export default function Board({ state, mode, choose, preview = false }: { state:
   const select = (type: string, id: number) => { if (Date.now() - movedAt.current > 180) choose(type, id); };
   const color = (id: string | null) => state.players.find(p => p.id === id)?.color || '#fff2d0';
   const legal = state.legal;
-  return <div className={`board-viewport${state.board.tiles.length > 19 ? ' expanded-board' : ''}`} ref={el} data-scroll-drag="ignore" aria-label="Plansza Kroniki Aetherii. Przesuń jednym palcem, powiększ dwoma." onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onWheel={e => { if (e.ctrlKey || e.metaKey) setZoom(z => clamp(z - e.deltaY * 0.003)); }}>
-    <div className="board-world" ref={world} style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }}>
-      {state.board.tiles.map(t => <button key={t.id} type="button" className={`hex-tile ${mode === 'robber' && legal.robber.includes(t.id) ? 'selectable' : ''}`} style={{ left: `${t.x / 540 * 100}%`, top: `${t.y / 500 * 100}%`, width: `${Math.sqrt(3) * (state.board.hexRadius || 48) / 540 * 100}%` }} aria-label={`${t.resource === 'desert' ? 'Pustkowie (puste pole)' : labels[t.resource]}, ${t.number || 'brak produkcji'}${t.id === state.robber ? ', złodziej' : ''}`} onClick={() => mode === 'robber' && legal.robber.includes(t.id) && select('robber', t.id)} tabIndex={mode === 'robber' && legal.robber.includes(t.id) ? 0 : -1}>
-        <img src={appPath(`/game/aetherii/${t.resource === 'wood' ? 'forest' : t.resource}.webp`)} alt="" draggable={false}/>
-        {t.number > 0 && <span className={`number-token ${[6, 8].includes(t.number) ? 'frequent' : ''}`} title={`Szansa na sumę ${t.number}: ${6 - Math.abs(7 - t.number)}/36`}>{t.number}<small>{'•'.repeat(6 - Math.abs(7 - t.number))}</small></span>}
-        {t.id === state.robber && !preview && <span className="robber-piece"><PersonIcon/></span>}
-      </button>)}
-      {state.board.ports.map(port => {
+  const portSpot = (port: State['board']['ports'][number]) => {
         const [a, b] = port.vertices.map(id => state.board.vertices[id]);
         const expanded = state.board.tiles.length > 19;
         const midX = (a.x + b.x) / 2, midY = (a.y + b.y) / 2;
@@ -74,7 +67,24 @@ export default function Board({ state, mode, choose, preview = false }: { state:
         x = Math.max(60, Math.min(480, x));
         y = Math.max(expanded ? 20 : 35, Math.min(expanded ? 480 : 440, y));
         if (!expanded && x > 435 && y > 310) x = 435;
-        return <span key={port.id} className="port" style={{ left: `${x / 540 * 100}%`, top: `${y / 500 * 100}%` }} title={port.type === 'any' ? 'Port uniwersalny 3:1' : `Port ${labels[port.type]} 2:1`}><b>{port.type === 'any' ? '3:1' : '2:1'}</b>{port.type !== 'any' && <small>{shortLabels[port.type]}</small>}</span>;
+        return { x, y };
+  };
+  return <div className={`board-viewport${state.board.tiles.length > 19 ? ' expanded-board' : ''}`} ref={el} data-scroll-drag="ignore" aria-label="Plansza Kroniki Aetherii. Przesuń jednym palcem, powiększ dwoma." onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onWheel={e => { if (e.ctrlKey || e.metaKey) setZoom(z => clamp(z - e.deltaY * 0.003)); }}>
+    <div className="board-world" ref={world} style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }}>
+      {state.board.tiles.map(t => <button key={t.id} type="button" className={`hex-tile ${mode === 'robber' && legal.robber.includes(t.id) ? 'selectable' : ''}`} style={{ left: `${t.x / 540 * 100}%`, top: `${t.y / 500 * 100}%`, width: `${Math.sqrt(3) * (state.board.hexRadius || 48) / 540 * 100}%` }} aria-label={`${t.resource === 'desert' ? 'Pustkowie (puste pole)' : labels[t.resource]}, ${t.number || 'brak produkcji'}${t.id === state.robber ? ', złodziej' : ''}`} onClick={() => mode === 'robber' && legal.robber.includes(t.id) && select('robber', t.id)} tabIndex={mode === 'robber' && legal.robber.includes(t.id) ? 0 : -1}>
+        <img src={appPath(`/game/aetherii/${t.resource === 'wood' ? 'forest' : t.resource}.webp`)} alt="" draggable={false}/>
+        {t.number > 0 && <span className={`number-token ${[6, 8].includes(t.number) ? 'frequent' : ''}`} title={`Szansa na sumę ${t.number}: ${6 - Math.abs(7 - t.number)}/36`}>{t.number}<small>{'•'.repeat(6 - Math.abs(7 - t.number))}</small></span>}
+        {t.id === state.robber && !preview && <span className="robber-piece"><PersonIcon/></span>}
+      </button>)}
+      <svg className="port-piers" viewBox="0 0 540 500" aria-hidden="true">{state.board.ports.map(port => {
+        const spot = portSpot(port);
+        return <g key={port.id}>{port.vertices.map(id => { const v = state.board.vertices[id]; return <g key={id}>
+          <line x1={v.x} y1={v.y} x2={spot.x} y2={spot.y} className="pier-edge"/><line x1={v.x} y1={v.y} x2={spot.x} y2={spot.y} className="pier-plank"/>
+          <circle cx={v.x} cy={v.y} r="9" className="port-ring-edge"/><circle cx={v.x} cy={v.y} r="9" className="port-ring"/></g>; })}</g>;
+      })}</svg>
+      {state.board.ports.map(port => {
+        const { x, y } = portSpot(port);
+        return <span key={port.id} className={`port${port.type === 'any' ? ' port-any' : ''}`} style={{ left: `${x / 540 * 100}%`, top: `${y / 500 * 100}%` }} title={port.type === 'any' ? 'Port uniwersalny 3:1' : `Port ${labels[port.type]} 2:1`}>{port.type === 'any' ? <svg className="port-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v13M12 4l7 9h-7M12 6L6 13h6M3 17c3 3 6 3 9 0 3 3 6 3 9 0v3c-3 3-6 3-9 0-3 3-6 3-9 0z"/></svg> : <img className="port-icon" src={appPath(`/game/aetherii/icon-${port.type}.webp`)} alt="" draggable={false}/>}<b>{port.type === 'any' ? '3:1' : '2:1'}</b>{port.type !== 'any' && <small>{shortLabels[port.type]}</small>}</span>;
       })}
       {state.board.edges.map(e => {
         const a = state.board.vertices[e.a], b = state.board.vertices[e.b];
