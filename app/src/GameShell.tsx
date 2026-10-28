@@ -1,6 +1,6 @@
 import { createContext, forwardRef, useContext, type ComponentProps, type PropsWithChildren } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { BottomSheet, KeyboardInput, KeyboardProvider, MobileScroll, useKeyboard } from './mobile';
+import { BottomSheet, KeyboardInput, KeyboardTextarea, KeyboardProvider, MobileScroll, useKeyboard } from './mobile';
 import { MobileDeviceProvider } from './mobile/Device';
 
 const NativeContext = createContext(false);
@@ -16,6 +16,10 @@ export const GameInput = forwardRef<HTMLInputElement, ComponentProps<typeof Keyb
   const native = useContext(NativeContext);
   return native ? <input {...props} ref={ref}/> : <KeyboardInput {...props} ref={ref}/>;
 });
+export function GameTextarea(props: ComponentProps<typeof KeyboardTextarea>) {
+  const native = useContext(NativeContext);
+  return native ? <textarea {...props}/> : <KeyboardTextarea {...props}/>;
+}
 export function useGameKeyboard() { return useKeyboard(); }
 export function GameSheet(props: ComponentProps<typeof BottomSheet>) {
   const native = useContext(NativeContext);

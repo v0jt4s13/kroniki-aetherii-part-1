@@ -42,7 +42,7 @@ export function createAccounts(path, config = process.env, onLogin = () => {}) {
     if (attempts.size > 1000) for (const [key, entry] of attempts) if (entry.until < now) attempts.delete(key);
   }
   return {
-    session, publicUser, googleEnabled,
+    session, publicUser, googleEnabled, hasUser: id => db.users.some(u => u.id === id),
     async register(req, res, body) {
       throttle(req);
       const email = emailOf(body.email), name = typeof body.name === 'string' ? body.name.trim() : '';

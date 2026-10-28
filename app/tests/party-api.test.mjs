@@ -1,3 +1,4 @@
+import { inviteCookie } from './invite-helper.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
@@ -15,8 +16,8 @@ test('mixed party API reserves seats, enforces host settings, runs three AI play
     await new Promise((resolve, reject) => { processHandle.stdout.on('data', c => { if (c.toString().includes('Kroniki Aetherii:')) resolve(); }); processHandle.once('error', reject); processHandle.once('exit', code => reject(new Error(`Server exited ${code}`))); });
   }
   const stop = () => new Promise(resolve => { processHandle.once('exit', resolve); processHandle.kill('SIGTERM'); });
-  async function request(path, body, token) {
-    const response = await fetch(base + path, { method: body === undefined ? 'GET' : 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: body === undefined ? undefined : JSON.stringify(body) });
+  async function request(path, body, token, cookie) {
+    const response = await fetch(base + path, { method: body === undefined ? 'GET' : 'POST', headers: { 'Content-Type': 'application/json', ...(cookie ? { Cookie: cookie } : {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: body === undefined ? undefined : JSON.stringify(body) });
     return { status: response.status, body: await response.json() };
   }
   const action = (path, token, state, action, payload = {}) => request(path + '/action', { revision: state.revision, action, payload }, token);
@@ -30,10 +31,10 @@ test('mixed party API reserves seats, enforces host settings, runs three AI play
       assert.equal(s.botCount, bots); assert.equal(s.humanLimit, 4 - bots); assert.equal(s.boardSize, size); assert.equal(s.phase, 'lobby');
       if (bots < 3) assert.equal((await action(path, token, s, 'start')).status, 400);
       for (let i = 1; i < 4 - bots; i++) {
-        const joined = await request(path + '/join', { name: `Znajomy ${i}` }); assert.equal(joined.status, 201);
+        const joined = await request(path + '/join', { name: `Znajomy ${i}` }, undefined, await inviteCookie(base,path,token)); assert.equal(joined.status, 201);
         assert.equal((await action(path, joined.body.token, joined.body.state, 'configure', { boardSize: 25 })).status, 400);
       }
-      assert.equal((await request(path + '/join', { name: 'Nadmiarowy' })).status, 409);
+      assert.equal((await request(path + '/join', { name: 'Nadmiarowy' }, undefined, await inviteCookie(base,path,token))).status, 409);
       s = (await request(path, undefined, token)).body;
       const started = await action(path, token, s, 'start'); assert.equal(started.status, 200); s = started.body;
       assert.equal(s.players.length, 4); assert.equal(s.players.filter(p => p.bot).length, bots); assert.equal(new Set(s.players.map(p => p.faction)).size, 4);

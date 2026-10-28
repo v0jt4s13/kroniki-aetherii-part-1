@@ -8,6 +8,8 @@ import { nextBotMove } from './bot.mjs';
 import { createAccounts } from './accounts.mjs';
 import { publicBasePath } from './base-path.mjs';
 import { createTraffic } from './traffic.mjs';
+import { createInvitations } from './invitations.mjs';
+import { createCommunication } from './communication.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 if (existsSync(resolve(root, '.env'))) process.loadEnvFile(resolve(root, '.env'));
@@ -42,6 +44,10 @@ const assignFaction = (g, p, requested) => {
   p.faction = available.includes(requested) ? requested : available.includes(p.faction) ? p.faction : available[0];
 };
 const save = () => { writeFileSync(`${dbPath}.tmp`, JSON.stringify(rooms), { mode: 0o600 }); renameSync(`${dbPath}.tmp`, dbPath); };
+const commitRoom = next => { const previous=rooms[next.code];rooms[next.code]=next;try{save();}catch(error){rooms[next.code]=previous;throw error;} };
+const mutateRoom = (code,fn) => {const next=structuredClone(rooms[code]);const result=fn(next);commitRoom(next);return result;};
+const invitations = createInvitations({ basePath, secure: process.env.PUBLIC_URL?.startsWith('https://') });
+const gameView = (g, id) => ({ ...view(g,id), communication: communication.flags(g,g.players.find(p=>p.id===id)) });
 // Timed server-side actions survive reloads and server restarts. No bot token is
 // issued to a browser, and all moves go through the same rules as human moves.
 const botTimer = setInterval(() => {
@@ -90,8 +96,12 @@ const server = http.createServer(async (req, res) => {
   if (url.pathname.startsWith('/api/')) {
     try {
       // Browser writes must originate from this host. No wildcard CORS.
-      if (req.headers.origin && new URL(req.headers.origin).host !== req.headers.host) return json(res, 403, { error: 'Niedozwolone źródło żądania.' });
-      const ip = req.socket.remoteAddress;
+      if (req.headers.origin && req.headers.origin !== (process.env.PUBLIC_URL ? new URL(process.env.PUBLIC_URL).origin : `http://${req.headers.host}`)) return json(res, 403, { error: 'Niedozwolone źródło żądania.' });
+      const authCode=url.pathname.match(/^\/api\/rooms\/([A-Z0-9]{6})/ )?.[1];
+      const authToken=req.headers.authorization?.replace(/^Bearer /,'');
+      const rateUser=accounts.session(req);
+      const ratePlayer=authCode&&authToken&&rooms[authCode]?.players.find(p=>!p.bot&&p.token===authToken&&(!p.accountId||p.accountId===rateUser?.id));
+      const ip = ratePlayer ? `player:${ratePlayer.id}` : rateUser ? `account:${rateUser.id}` : req.socket.remoteAddress;
       const count = (limiter.get(ip) || 0) + 1; limiter.set(ip, count);
       if (count > 600) return json(res, 429, { error: 'Za dużo żądań. Spróbuj za chwilę.' });
       if (url.pathname === '/api/traffic' && req.method === 'GET') return json(res, 200, traffic.summary());
@@ -117,7 +127,7 @@ const server = http.createServer(async (req, res) => {
           if (p) { p.accountId = user.id; g.revision++; save(); }
         }
         if (!p) return json(res, 403, { error: 'Ta gra nie należy do Twojego konta.' });
-        return json(res, 200, { token: p.token, state: view(g, p.id) });
+        return json(res, 200, { token: p.token, state: gameView(g, p.id) });
       }
       if (url.pathname === '/api/health') return json(res, 200, { ok: true });
       if (url.pathname === '/api/preview' && req.method === 'GET') return json(res, 200, view(demo, demo.players[0].id));
@@ -138,35 +148,54 @@ const server = http.createServer(async (req, res) => {
           }
           act(g, g.host, 'start'); g.revision++;
         }
-        rooms[code] = g; save();
-        return json(res, 201, { token: g.players[0].token, state: view(g, g.players[0].id) });
+        g.communicationApproved = true; rooms[code] = g; save();
+        return json(res, 201, { token: g.players[0].token, state: gameView(g, g.players[0].id) });
       }
-      const match = url.pathname.match(/^\/api\/rooms\/([A-Z0-9]{6})(?:\/(join|action))?$/);
+      const match = url.pathname.match(/^\/api\/rooms\/([A-Z0-9]{6})(?:\/(join|action|invitations|invitation-context|communication-ticket|messages|voice-credentials|communication-settings))?$/);
       if (!match) return json(res, 404, { error: 'Nie znaleziono pokoju.' });
       let g = rooms[match[1]];
       if (!g) return json(res, 404, { error: 'Ten pokój nie istnieje. Sprawdź link.' });
+      if (match[2] === 'invitation-context') {
+        if (req.method === 'POST') { const b=await readBody(req); return json(res,200,mutateRoom(match[1],next=>invitations.stage(req,res,next,b.secret))); }
+        if (req.method === 'GET') return json(res,200,{ready:invitations.context(req,g)});
+      }
       if (req.method === 'POST' && match[2] === 'join') {
         const body = await readBody(req);
-        g = rooms[match[1]];
-        const existing = user && g.players.find(p => p.accountId === user.id);
-        if (existing) return json(res, 200, { token: existing.token, state: view(g, existing.id) });
+        const joiningUser=accounts.session(req);
+        g = structuredClone(rooms[match[1]]);
+        const existing = joiningUser && g.players.find(p => p.accountId === joiningUser.id);
+        if (existing) return json(res, 200, { token: existing.token, state: gameView(g, existing.id) });
+        const invitation=invitations.inspect(req,g,joiningUser);
+        if(invitation.existing)return json(res,200,{token:invitation.existing.token,state:gameView(g,invitation.existing.id)});
         if (g.phase !== 'lobby') return json(res, 409, { error: 'Gra już trwa. Nowi gracze nie mogą dołączyć.' });
         if (g.players.length >= (g.ai ? 2 : 4) || g.players.filter(p => !p.bot).length >= (g.ai ? 1 : 4 - (g.botCount || 0))) return json(res, 409, { error: 'Pokój jest pełny.' });
-        const p = player(user?.name || body.name, g.players.length); assignFaction(g, p, body.faction); if (user) p.accountId = user.id;
-        g.players.push(p); g.revision++; save();
-        return json(res, 201, { token: p.token, state: view(g, p.id) });
+        const p = player(joiningUser?.name || body.name, g.players.length); assignFaction(g, p, body.faction); if (joiningUser) p.accountId = joiningUser.id;
+        invitation.consume(p); g.players.push(p); g.revision++; commitRoom(g);
+        return json(res, 201, { token: p.token, state: gameView(g, p.id) });
       }
       const token = req.headers.authorization?.replace(/^Bearer /, '');
       const p = token && g.players.find(x => !x.bot && x.token === token && (!x.accountId || x.accountId === user?.id));
       if (!p) return json(res, 401, { error: 'Dołącz do pokoju, aby zobaczyć rozgrywkę.' });
-      if (req.method === 'GET' && !match[2]) return json(res, 200, view(g, p.id));
+      if (match[2] === 'invitations') {
+        if(g.host!==p.id)return json(res,403,{error:'Tylko gospodarz zaprasza graczy.'});
+        if(req.method==='GET')return json(res,200,{invitations:(g.invitations||[]).filter(x=>!x.used&&x.expires>Date.now()).map(({id,expires,accountId})=>({id,expires,accountId}))});
+        if(req.method==='POST'){
+          const b=await readBody(req);g=rooms[match[1]];
+          if(p.accountId&&accounts.session(req)?.id!==p.accountId)return json(res,401,{error:'Sesja wygasła.'});
+          if(b.revoke){mutateRoom(g.code,next=>{next.invitations=(next.invitations||[]).filter(x=>x.id!==b.revoke);});return json(res,200,{ok:true});}
+          if(b.accountId && (typeof b.accountId!=='string'||!accounts.hasUser(b.accountId)))throw Error('Nie znaleziono wskazanego konta.');
+          return json(res,201,mutateRoom(g.code,next=>invitations.create(next,b.accountId)));
+        }
+      }
+      if(await communication.route(req,res,url,g,p,match[2]))return;
+      if (req.method === 'GET' && !match[2]) return json(res, 200, gameView(g, p.id));
       if (req.method === 'POST' && match[2] === 'action') {
         const body = await readBody(req);
         g = rooms[match[1]];
-        if (body.revision !== g.revision) return json(res, 409, { error: 'Plansza została zaktualizowana. Spróbuj ponownie.', state: view(g, p.id) });
+        if (body.revision !== g.revision) return json(res, 409, { error: 'Plansza została zaktualizowana. Spróbuj ponownie.', state: gameView(g, p.id) });
         // Apply on a copy: rejected actions cannot spend cards or partially mutate state.
         const next = structuredClone(g); act(next, p.id, body.action, body.payload); next.revision++; rooms[g.code] = next; save();
-        return json(res, 200, view(next, p.id));
+        return json(res, 200, gameView(next, p.id));
       }
       return json(res, 405, { error: 'Niedozwolona metoda.' });
     } catch (error) { return json(res, error.status || 400, { error: error.message || 'Nie udało się wykonać akcji.' }); }
@@ -183,6 +212,7 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(200, { 'Content-Type': mime[extname(path)] || 'application/octet-stream', 'X-Content-Type-Options': 'nosniff' }); res.end(data);
   } catch { res.writeHead(404); res.end('Not found'); }
 });
+const communication=createCommunication({server,basePath,dataDir,getRoom:code=>rooms[code],accounts,mutateRoom,json,readBody,env:process.env});
 server.listen(port, host, () => console.log(`Kroniki Aetherii: http://${host}:${port} (${production ? 'production' : 'development'})`));
-const shutdown = () => { clearInterval(botTimer); traffic.close(); server.close(); vite?.close(); };
+const shutdown = () => { clearInterval(botTimer); traffic.close(); communication.close(); server.close(); vite?.close(); };
 process.on('SIGTERM', shutdown); process.on('SIGINT', shutdown);

@@ -404,3 +404,38 @@ svg.port-icon { fill:none; stroke:#2f5d7a; stroke-width:1.8; stroke-linecap:roun
 @media(max-width:360px) { .rules-steps { grid-template-columns:1fr; } }
 
 .toast { white-space:pre-line; }
+
+/* Communication inherits the game's parchment/night palette. */
+.communication-entry { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin:12px 0; }
+.communication-entry>span { font-size:14px; }
+.communication-panel { --chat-bg:#fff9eb; --chat-line:#b8a77f; --chat-ink:#302c22; --chat-soft:#64543a; color:var(--chat-ink); font-size:18px; }
+[data-aetherii-theme=dark] .communication-panel { --chat-bg:#1b1e2b; --chat-line:#8d7e5a; --chat-ink:#e9e2d0; --chat-soft:#c4bca8; }
+.communication-panel :is(button,textarea):focus-visible { outline:3px solid var(--chat-ink); outline-offset:3px; }
+.communication-panel button:disabled { opacity:.65; cursor:not-allowed; }
+.chat-privacy { color:var(--chat-soft); font-size:14px; }
+.chat-settings { border-block:1px solid var(--chat-line); padding:12px 0; margin-bottom:20px; }
+.chat-settings summary { cursor:pointer; font-size:16px; }
+.chat-settings button { margin:8px 8px 0 0; }
+.voice-controls { border-bottom:1px solid var(--chat-line); padding-bottom:16px; margin-bottom:24px; }
+.voice-controls h3 { font-size:21px; margin:20px 0 12px; }
+.mic-actions { display:flex; flex-wrap:wrap; gap:10px; }
+.mic-button { touch-action:none; user-select:none; min-height:48px; border:1px solid var(--chat-line); border-radius:8px; padding:12px 16px; background:var(--chat-bg); color:var(--chat-ink); font:inherit; }
+.mic-button.is-live { background:#6d2434; color:#fff5df; }
+.voice-members { list-style:none; padding:0; margin:16px 0 0; }
+.voice-members li { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 0; border-top:1px solid var(--chat-line); }
+.voice-members li>span { min-width:0; overflow-wrap:anywhere; }
+.voice-members small { display:block; color:var(--chat-soft); font-size:14px; }
+.voice-members button { flex:0 0 auto; max-width:45%; font-size:14px; }
+.chat-messages { max-height:320px; overflow:auto; overscroll-behavior:contain; scrollbar-color:var(--chat-line) var(--chat-bg); background:var(--chat-bg); border:1px solid var(--chat-line); border-radius:8px; padding:12px; }
+.chat-messages article { padding:12px 0; border-bottom:1px solid var(--chat-line); overflow-wrap:anywhere; }
+.chat-messages article:last-child { border-bottom:0; }
+.chat-messages article>div { display:flex; justify-content:space-between; gap:12px; font-size:14px; }
+.chat-messages time { color:var(--chat-soft); font-variant-numeric:tabular-nums; flex-shrink:0; }
+.chat-messages article p { white-space:pre-wrap; margin:6px 0; }
+.chat-pending { color:var(--chat-soft); }
+.chat-composer { display:grid; gap:10px; margin-top:20px; }
+.chat-composer label { font-size:16px; }
+.chat-composer textarea { width:100%; box-sizing:border-box; resize:vertical; border:1px solid var(--chat-line); border-radius:8px; padding:12px; background:var(--chat-bg); color:var(--chat-ink); font:inherit; caret-color:var(--chat-ink); }
+.chat-composer textarea::placeholder { color:var(--chat-soft); opacity:1; }
+.communication-panel ::selection { background:#6d2434; color:#fff5df; }
+.chat-announcement { display:block; min-height:1.5em; color:var(--chat-soft); font-size:14px; }

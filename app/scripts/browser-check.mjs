@@ -1,3 +1,4 @@
+import { invitationUrl } from './browser-invitation.mjs';
 import { rollUntilNoDouble } from './browser-rolls.mjs';
 import { chromium } from 'playwright';
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -23,11 +24,13 @@ try {
   await host.getByRole('heading', { name: 'Zbierz obrońców krainy' }).waitFor();
   const code = new URL(host.url()).searchParams.get('room'); assert.match(code, /^[A-Z0-9]{6}$/);
   await host.getByRole('button', { name: 'Zaproś znajomych', exact: true }).click();
-  assert.ok((await host.getByLabel('Link zaproszenia', { exact: true }).inputValue()).includes(code));
+  await host.getByRole('button',{name:'Utwórz nowe zaproszenie',exact:true}).click();
+  await host.getByLabel('Prywatny link zaproszenia',{exact:true}).waitFor();
+  assert.ok((await host.getByLabel('Prywatny link zaproszenia',{exact:true}).inputValue()).includes('#invite='));
   await host.getByRole('button', { name: 'Zamknij panel', exact: true }).click();
   const pages = [host];
   for (const name of ['Bartek', 'Celina', 'Dawid']) {
-    const page = await pageFor(); pages.push(page); await page.goto(`${base}/?room=${code}`);
+    const page = await pageFor(); pages.push(page); await page.goto(await invitationUrl(host,code));
     await page.getByLabel('Twoje imię', { exact: true }).fill(name);
     await page.getByRole('button', { name: `Dołącz do pokoju ${code}` }).click();
     await page.getByRole('heading', { name: 'Zbierz obrońców krainy' }).waitFor();

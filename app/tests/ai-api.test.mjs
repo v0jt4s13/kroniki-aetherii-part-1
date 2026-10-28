@@ -39,7 +39,7 @@ test('AI API: two players, automatic setup/turns and resume after restart withou
     assert.equal(s.players[1].bot, true); assert.equal(s.phase, 'setup-settlement');
     assert.equal(s.players[1].resources, undefined); assert.equal(s.players[1].cards, undefined);
     assert.ok(s.players.every(p => !('token' in p))); assert.equal((await request(path, undefined, 'null')).status, 401);
-    assert.equal((await request(path + '/join', { name: 'Trzeci' })).status, 409);
+    assert.equal((await request(path + '/join', { name: 'Trzeci' })).status, 403);
     s = await move(s); s = await move(s);
     await stop(); await start();
     // No browser is connected. The restored server still completes AI setup.
@@ -77,7 +77,7 @@ test('AI API: human plus three computers share one board and finish the setup', 
     const { token } = r.body, path = `/api/rooms/${r.body.state.code}`; let s = r.body.state;
     assert.equal(s.maxPlayers, 4); assert.deepEqual(s.players.map(p => p.bot === true), [false, true, true, true]);
     assert.equal(new Set(s.players.map(p => p.color)).size, 4);
-    assert.equal((await call(`${path}/join`, { name: 'Intruz' })).status, 409);
+    assert.equal((await call(`${path}/join`, { name: 'Intruz' })).status, 403);
     for (let i = 0; i < 400 && s.phase.startsWith('setup'); i++) {
       if (s.players[s.active].id === s.me) {
         const m = await call(`${path}/action`, { revision: s.revision, ...chooseBotAction(s) }, token); assert.equal(m.status, 200, JSON.stringify(m.body));

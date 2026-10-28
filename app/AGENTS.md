@@ -2,6 +2,8 @@
 
 ## Game preferences
 
+- Private player communication requirements: each participant can mute another participant's audio only for themselves. Support push-to-talk by holding a “Mic” button and an explicitly enabled continuous microphone mode while using chat. Extend invitations to support logged-in players and account-owned game recovery. The implementation and TURN setup are documented in `docs/komunikacja-graczy.md` at the repository root. Closing chat disables microphone transmission while preserving listening; reconnect never resumes transmission automatically.
+
 - Kroniki Aetherii follows the linked author rules: 2–4 players, two Strażnice and two Trakty per player in every mode; starting resources come from the second Strażnica. Four unique factions, cooperative raids replace the robber. Costs and the existing card deck are retained by explicit user choice, with defensive magic replacing knights. Preserve painted parchment art; user requested Product Design for fantasy asset revisions.
 - Below dice results, show the current user's actual resource gains from the latest roll, including an explicit message when no resources were gained. Keep the summary through turn changes and reloads until the next roll.
 - Notify players of incoming trade offers and their turn with a dismissible popup; optionally use browser notifications after permission and indicate activity in the hidden tab title.

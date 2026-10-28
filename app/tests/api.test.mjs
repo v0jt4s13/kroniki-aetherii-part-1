@@ -1,3 +1,4 @@
+import { inviteCookie } from './invite-helper.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
@@ -23,8 +24,8 @@ test('API: capacity, identity, hidden hands, stale actions, atomic failures and 
     await new Promise((resolve, reject) => { proc.stdout.on('data', chunk => { if (chunk.toString().includes('Kroniki Aetherii:')) resolve(); }); proc.on('error', reject); proc.on('exit', code => { if (code) reject(new Error(`Server exited ${code}`)); }); });
   }
   const stop = () => new Promise(resolve => { proc.once('exit', resolve); proc.kill('SIGTERM'); });
-  async function request(path, body, token) {
-    const response = await fetch(base + path, { method: body ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
+  async function request(path, body, token, cookie) {
+    const response = await fetch(base + path, { method: body ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json', ...(cookie ? { Cookie: cookie } : {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
     return { status: response.status, body: await response.json() };
   }
   await start();
@@ -38,8 +39,8 @@ test('API: capacity, identity, hidden hands, stale actions, atomic failures and 
     const { token, state } = created.body; const path = `/api/rooms/${state.code}`;
     assert.equal((await request(path)).status, 401);
     const players = [];
-    for (const name of ['Bartek', 'Celina', 'Dawid']) { const next = await request(path + '/join', { name }); assert.equal(next.status, 201); players.push(next.body); }
-    assert.equal((await request(path + '/join', { name: 'Piąty' })).status, 409);
+    for (const name of ['Bartek', 'Celina', 'Dawid']) { const next = await request(path + '/join', { name }, undefined, await inviteCookie(base,path,token)); assert.equal(next.status, 201); players.push(next.body); }
+    assert.equal((await request(path + '/join', { name: 'Piąty' }, undefined, await inviteCookie(base,path,token))).status, 409);
     const snapshot = (await request(path, undefined, token)).body;
     assert.equal(snapshot.players.length, 4);
     assert.ok(!JSON.stringify(snapshot).includes(players[0].token));

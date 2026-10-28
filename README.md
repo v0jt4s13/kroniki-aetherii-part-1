@@ -32,7 +32,7 @@ npm run dev
 
 Domyślny adres: `http://localhost:4173`. W sieci lokalnej użyj adresu IP komputera gospodarza. Tryb podglądu urządzeń: `/?preview=1`.
 
-**Ze znajomymi**: wybierz wielkość planszy i obsadę pokoju, utwórz go i wyślij link. Dostępne są 2–4 osoby bez SI oraz pełne składy czteroosobowe: **1 człowiek + 3 SI**, **2 ludzi + 2 SI**, **3 ludzi + 1 SI**. Gospodarz może zmieniać planszę i obsadę w lobby. Przy składzie mieszanym start wymaga kompletu zadeklarowanych osób; pozostałe miejsca są zarezerwowane dla SI. Komputerowi gracze dołączają przy starcie z wolnymi frakcjami. Każda frakcja występuje raz. Zajętą frakcję przy dołączaniu zastępuje pierwsza dostępna; przed startem można zmienić ją w lobby.
+**Ze znajomymi**: wybierz wielkość planszy i obsadę pokoju, utwórz go, a następnie w panelu zapraszania wygeneruj jednorazowy prywatny link (24 godziny). Sam kod pokoju nie pozwala dołączyć. Zalogowany gracz otrzymuje miejsce przypisane do konta. Dostępne są 2–4 osoby bez SI oraz pełne składy czteroosobowe: **1 człowiek + 3 SI**, **2 ludzi + 2 SI**, **3 ludzi + 1 SI**. Gospodarz może zmieniać planszę i obsadę w lobby. Przy składzie mieszanym start wymaga kompletu zadeklarowanych osób; pozostałe miejsca są zarezerwowane dla SI. Komputerowi gracze dołączają przy starcie z wolnymi frakcjami. Każda frakcja występuje raz. Zajętą frakcję przy dołączaniu zastępuje pierwsza dostępna; przed startem można zmienić ją w lobby.
 
 **Z AI**: wybierz 1–3 przeciwników SI, frakcję i „Zagraj z AI”. Komputer rozstawia budowle, handluje, mobilizuje obronę i używa Magii. Korzysta z tych samych publicznych danych i własnej ręki co człowiek, bez zewnętrznej usługi AI. Rozgrywkę można wznowić po odświeżeniu i restarcie serwera.
 
@@ -61,6 +61,12 @@ Z katalogu repozytorium można uruchomić `docker compose up --build -d`. Istnie
 Konfiguracja dla `projects_manager` na ops02 i adresu `https://ops02.jdblayer.com/kroniki-aetherii/`: [instrukcja wdrożenia](docs/projects-manager.md).
 
 Obraz uruchamia serwer produkcyjny na porcie 4173 i zapisuje stan w nazwanym wolumenie `aetherii-data`. Do publicznego udostępnienia skieruj swoją domenę HTTPS na ten port; przykładowy plik Caddy znajduje się w `deploy/Caddyfile.example`.
+
+## Prywatna komunikacja
+
+Panel **Komunikacja** udostępnia czat tekstowy uczestnikom gry. Głos przez WebRTC wymaga konfiguracji własnego TURN; bez niej tekst działa niezależnie. Mikrofon obsługuje przytrzymanie **Mic** oraz świadomie włączane nadawanie ciągłe. Każdy może wyciszyć innego gracza tylko dla siebie. Zamknięcie panelu wyłącza nadawanie, zachowując odsłuch.
+
+Historia trafia do `chat.sqlite`, z retencją 30 dni. W istniejących grach gospodarz potwierdza skład przed otwarciem komunikacji. [Obsługa, konfiguracja TURN/Nginx, kopie i ograniczenia](docs/komunikacja-graczy.md).
 
 ## Statystyki odwiedzin
 

@@ -1,0 +1,16 @@
+# Optional Linux TURN service: docker compose -f compose.turn.yaml up -d
+# Supply TURN_SECRET, TURN_PUBLIC_IP and TURN_CERTS_DIR in the environment.
+services:
+  aetherii-turn:
+    image: coturn/coturn@sha256:bbefd3e1fdfdc0d58770fe01b581fd8b00d9f3a5580d00acb77cf719a6bc78e3
+    network_mode: host
+    command:
+      - -c
+      - /etc/coturn/turnserver.conf
+      - --external-ip=${TURN_PUBLIC_IP:?Set TURN_PUBLIC_IP}
+      - --static-auth-secret=${TURN_SECRET:?Set TURN_SECRET}
+      - --denied-peer-ip=${TURN_PUBLIC_IP:?Set TURN_PUBLIC_IP}
+    volumes:
+      - ./deploy/turn/turnserver.conf:/etc/coturn/turnserver.conf:ro
+      - ${TURN_CERTS_DIR:?Set TURN_CERTS_DIR}:/certs:ro
+    restart: unless-stopped

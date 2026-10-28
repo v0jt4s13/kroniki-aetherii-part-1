@@ -6,6 +6,10 @@ services:
     volumes:
       - aetherii-data:/data
     environment:
+      AETHERII_CHAT_ENABLED: ${AETHERII_CHAT_ENABLED:-true}
+      AETHERII_VOICE_ENABLED: ${AETHERII_VOICE_ENABLED:-true}
+      TURN_URLS: ${TURN_URLS:-}
+      TURN_SECRET: ${TURN_SECRET:-}
       PUBLIC_URL: ${PUBLIC_URL:-}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}

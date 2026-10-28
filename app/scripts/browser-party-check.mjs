@@ -1,3 +1,4 @@
+import { invitationUrl } from './browser-invitation.mjs';
 import { rollUntilNoDouble } from './browser-rolls.mjs';
 import { chromium } from 'playwright';
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -35,7 +36,7 @@ try {
     await host.getByRole('combobox', { name: 'Wielkość planszy', exact: true }).selectOption(`${size}`);
     await host.waitForFunction(n => document.querySelectorAll('.hex-tile').length === n, size);
     for (let i = 1; i < 4 - bots; i++) {
-      const page = await pageFor(); humans.push(page); await page.goto(`${base}/?room=${code}`);
+      const page = await pageFor(); humans.push(page); await page.goto(await invitationUrl(host,code));
       await page.getByLabel('Twoje imię', { exact: true }).fill(`Znajomy ${i}`);
       await page.getByRole('button', { name: `Dołącz do pokoju ${code}`, exact: true }).click();
       await page.getByRole('heading', { name: 'Zbierz obrońców krainy' }).waitFor();
