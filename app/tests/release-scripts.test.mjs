@@ -6,7 +6,7 @@ import {join} from 'node:path';
 import {spawn} from 'node:child_process';
 const repo=new URL('../../',import.meta.url),COMMIT='b'.repeat(40),DIGEST='sha256:'+'c'.repeat(64);
 const mock=String.raw`#!/usr/bin/env python3
-import sys,os,json,pathlib
+import sys,os,json,pathlib,tarfile
 r=pathlib.Path(os.environ['FIXTURE']);name=pathlib.Path(sys.argv[0]).name;a=sys.argv[1:]
 with (r/'calls.jsonl').open('a') as f:f.write(json.dumps([name]+a)+'\n')
 v=json.load(open(r/'app/package.json'))['version']
@@ -14,7 +14,10 @@ if name=='git':
  if a[:2]==['rev-parse','--show-toplevel']:print(r)
  elif a[:2]==['branch','--show-current']:print('main')
  elif a[:2]==['rev-parse','--git-path']:print(r/'release.lock')
- elif a[:2]==['rev-parse','HEAD']:print(('b' if (r/'committed').exists() else 'a')*40)
+ elif a[:2]==['rev-parse','HEAD']:print(('d' if (r/'advanced').exists() else 'b' if (r/'committed').exists() else 'a')*40)
+ elif a and a[0]=='archive':
+  with tarfile.open(fileobj=sys.stdout.buffer,mode='w|') as archive:
+   for name in ['app','deploy']:archive.add(r/name,arcname=name)
  elif a and a[0]=='status':
   if os.environ.get('DIRTY'):print(' M unrelated.txt')
   elif v!='0.1.0' and not (r/'committed').exists():
@@ -80,6 +83,31 @@ test('publisher resumes after push/test failures without double bump and refuses
   const x=await run(r,'01-publish-repo.sh',['--resume'],env.FAIL_IMAGE_PUSH?{REGISTRY_EXISTS:'1'}:{});assert.equal(x.code,0,x.out);assert.equal(calls(r).filter(c=>c[0]==='docker'&&c[1]==='build').length,1);assert.equal(JSON.parse(readFileSync(join(r,'app/package.json'))).version,'0.1.1');assert.equal(calls(r).filter(c=>c[0]==='git'&&c[1]==='commit').length,1);
  }
  const r=fixture(t);assert.notEqual((await run(r,'01-publish-repo.sh',[],{DIRTY:'1'})).code,0);assert.equal(JSON.parse(readFileSync(join(r,'app/package.json'))).version,'0.1.0');
+});
+test('resume after a corrective commit builds the recorded release snapshot and keeps its version/SHA',async t=>{
+ const r=fixture(t);assert.notEqual((await run(r,'01-publish-repo.sh',[],{FAIL_IMAGE_PUSH:'1'})).code,0);
+ writeFileSync(join(r,'advanced'),'');
+ const x=await run(r,'01-publish-repo.sh',['--resume']);assert.equal(x.code,0,x.out);
+ const manifest=JSON.parse(readFileSync(join(r,'.release','0.1.1-'+COMMIT.slice(0,12),'manifest.json')));
+ assert.equal(manifest.commit,COMMIT);assert.equal(manifest.version,'0.1.1');
+ const log=calls(r);assert.ok(log.some(c=>c[0]==='git'&&c[1]==='archive'&&c[2]===COMMIT));
+ assert.ok(log.filter(c=>c[0]==='docker'&&c[1]==='build').every(c=>c.at(-1).includes('.release/source-')));
+ assert.equal(log.filter(c=>c[0]==='git'&&c[1]==='commit').length,1);
+});
+test('image smoke command initializes a real file-based SQLite worker without input-type inheritance',async t=>{
+ const script=readFileSync(new URL('deploy/01-publish-repo.sh',repo),'utf8');
+ const smoke=script.match(/run --rm --network none --entrypoint node "\$REF" -e '([\s\S]*?)' "\$VERSION"/);
+ assert.ok(smoke,'Missing worker-compatible image smoke command');
+ assert.ok(!smoke[1].includes('--input-type'));
+ const r=mkdtempSync(join(tmpdir(),'aetherii-smoke-eval-'));t.after(()=>rmSync(r,{recursive:true,force:true}));
+ mkdirSync(join(r,'dist/client'),{recursive:true});mkdirSync(join(r,'server'));
+ writeFileSync(join(r,'package.json'),JSON.stringify({version:'0.1.1',type:'module'}));
+ writeFileSync(join(r,'dist/client/play.html'),'<script src="./assets/game-test.js"></script><script>aetheriiTheme</script>');
+ writeFileSync(join(r,'server/chat-store.mjs'),`export {createChatStore} from ${JSON.stringify(new URL('app/server/chat-store.mjs',repo).href)};`);
+ const database=join(r,'chat.sqlite');
+ const code=smoke[1].replace('"/tmp/release-chat.sqlite"',JSON.stringify(database));
+ const x=await new Promise((resolve,reject)=>{let out='';const p=spawn(process.execPath,['-e',code,'0.1.1'],{cwd:r});p.stdout.on('data',b=>out+=b);p.stderr.on('data',b=>out+=b);p.once('error',reject);p.once('exit',code=>resolve({code,out}));});
+ assert.equal(x.code,0,x.out);assert.ok(readFileSync(database).subarray(0,15).toString().startsWith('SQLite format 3'));
 });
 function serverFixture(t){
  const r=fixture(t),app=join(r,'appdir'),manager=join(r,'manager');writeFileSync(join(r,'committed'),'');writeFileSync(join(r,'app/package.json'),JSON.stringify({version:'0.1.1'}));

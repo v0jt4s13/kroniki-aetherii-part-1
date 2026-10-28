@@ -41,7 +41,7 @@ Jeżeli test, push lub rejestr przerwą operację:
 ./deploy/01-publish-repo.sh --resume
 ```
 
-Stan `.release/pending.json` pozwala wznowić bez kolejnego podbicia numeru. Nie zmieniaj w międzyczasie HEAD ani innych plików. Nieudana publikacja nie cofa automatycznie wersji ani nie przepisuje historii Git. Istniejący tag SHA jest pobierany i weryfikowany zamiast przebudowywany; błędu połączenia z rejestrem nie traktujemy jako zgody na nadpisanie tagu.
+Stan `.release/pending.json` pozwala wznowić bez kolejnego podbicia numeru. Przed utworzeniem commita wydania HEAD nie może się zmienić. Po jego utworzeniu dopuszczalny jest zatwierdzony commit naprawczy będący jego potomkiem, przy czystym repo i zachowaniu numeru wersji. Skrypt testuje i buduje migawkę oryginalnego commita przez `git archive`, więc poprawienie samego procesu publikacji nie zmienia zawartości obrazu oznaczonego starym SHA. Skrypt serwerowy w pakiecie również pochodzi z tej migawki. Nieudana publikacja nie cofa automatycznie wersji ani nie przepisuje historii Git. Istniejący tag SHA jest pobierany i weryfikowany zamiast przebudowywany; błędu połączenia z rejestrem nie traktujemy jako zgody na nadpisanie tagu.
 
 ## 2. Serwer ops02
 

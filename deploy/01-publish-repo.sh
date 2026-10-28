@@ -94,7 +94,7 @@ if (( RESUME )); then
   BASE="${META[0]}"; VERSION="${META[1]}"; COMMIT="${META[2]}"; PLATFORM="${META[3]}"
   [[ "$BASE" =~ ^[a-f0-9]{40}$ && "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ && "$PLATFORM" =~ ^linux/(amd64|arm64)$ ]] || { echo 'Uszkodzony stan publikacji.' >&2; exit 1; }
   if [[ -n "$COMMIT" ]]; then
-    [[ "$(git rev-parse HEAD)" == "$COMMIT" ]] && clean || { echo 'HEAD lub pliki zmienily sie od przygotowania wydania.' >&2; exit 1; }
+    git merge-base --is-ancestor "$COMMIT" HEAD && clean || { echo 'Wymagane czyste repo i HEAD bedacy wydaniem lub jego potomkiem.' >&2; exit 1; }
   else
     [[ "$(git rev-parse HEAD)" == "$BASE" ]] || { echo 'HEAD zmienil sie od podbicia wersji.' >&2; exit 1; }
     python3 - <<'PY'
@@ -127,12 +127,23 @@ console.log(version);
 JS
 )"
 fi
+SOURCE_DIR=''
+snapshot_release() {
+  SOURCE_DIR="$(mktemp -d "$ROOT/.release/source-${COMMIT:0:12}.XXXXXX")"
+  git archive "$COMMIT" | tar -x -C "$SOURCE_DIR"
+  node -e 'if(require(process.argv[1]).version!==process.argv[2])throw Error("Wersja commita nie odpowiada stanowi publikacji")' "$SOURCE_DIR/app/package.json" "$VERSION"
+}
+TEST_ROOT="$ROOT"
+if [[ -n "$COMMIT" ]]; then
+  snapshot_release
+  TEST_ROOT="$SOURCE_DIR"
+fi
 STEP=testy
-npm --prefix app ci --no-audit --no-fund
-npm --prefix app test
-npm --prefix app run check:runtime
-npm --prefix app run test:prefix
-npm --prefix app run test:sites
+npm --prefix "$TEST_ROOT/app" ci --no-audit --no-fund
+npm --prefix "$TEST_ROOT/app" test
+npm --prefix "$TEST_ROOT/app" run check:runtime
+npm --prefix "$TEST_ROOT/app" run test:prefix
+npm --prefix "$TEST_ROOT/app" run test:sites
 if [[ -z "$COMMIT" ]]; then
   STEP=commit-wersji
   git add -- app/package.json app/package-lock.json
@@ -141,6 +152,7 @@ if [[ -z "$COMMIT" ]]; then
   node -e 'const fs=require("node:fs"),p=process.argv[1],s=JSON.parse(fs.readFileSync(p));s.commit=process.argv[2];fs.writeFileSync(p,JSON.stringify(s,null,2)+"\n")' "$STATE" "$COMMIT"
 fi
 clean || { echo 'Testy zmienily sledzone pliki. Publikacja zatrzymana.' >&2; exit 1; }
+if [[ -z "$SOURCE_DIR" ]]; then snapshot_release; fi
 STEP=push-git
 # No force push. Remote divergence is an error and leaves a resumable release.
 git push origin HEAD:main
@@ -156,18 +168,20 @@ else
   if ! grep -Eiq 'not found|manifest unknown|no such manifest' .release/registry-check.log; then
     echo 'Nie mozna potwierdzic braku tagu w rejestrze. Nie przebudowano go. Szczegoly: .release/registry-check.log' >&2; exit 1
   fi
-  "${DOCKER[@]}" build --pull --platform "$PLATFORM" --label "org.opencontainers.image.version=$VERSION" --label "org.opencontainers.image.revision=$COMMIT" -t "$REF" .
+  "${DOCKER[@]}" build --pull --platform "$PLATFORM" --label "org.opencontainers.image.version=$VERSION" --label "org.opencontainers.image.revision=$COMMIT" -t "$REF" "$SOURCE_DIR"
 fi
 [[ "$("${DOCKER[@]}" inspect --format '{{index .Config.Labels "org.opencontainers.image.version"}}' "$REF")" == "$VERSION" ]]
 [[ "$("${DOCKER[@]}" inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$REF")" == "$COMMIT" ]]
 [[ "$("${DOCKER[@]}" inspect --format '{{.Os}}/{{.Architecture}}' "$REF")" == "$PLATFORM" ]]
-"${DOCKER[@]}" run --rm --network none --entrypoint node "$REF" --input-type=module -e '
-import fs from "node:fs";
+"${DOCKER[@]}" run --rm --network none --entrypoint node "$REF" -e '
+(async () => {
+const fs = require("node:fs");
 const p=JSON.parse(fs.readFileSync("package.json"));if(p.version!==process.argv[1])throw Error("Wrong package version");
 const html=fs.readFileSync("dist/client/play.html","utf8");if(!/src="\.\/assets\/game-/.test(html)||/src="\/assets\//.test(html))throw Error("Wrong asset prefix");
 if((html.match(/aetheriiTheme/g)||[]).length!==1)throw Error("Missing theme bootstrap");
 const {createChatStore}=await import("./server/chat-store.mjs");const s=createChatStore("/tmp/release-chat.sqlite");
 try{await s.run("history",{room:"RELEASE",player:"test"});}finally{await s.close();}
+})().catch(error => { console.error(error); process.exitCode = 1; });
 ' "$VERSION"
 STEP=push-obrazu
 "${DOCKER[@]}" push "$REF"
@@ -182,7 +196,7 @@ import fs from 'node:fs';
 const [path,image,tag,commit,version,digest,platform]=process.argv.slice(2);
 fs.writeFileSync(path,JSON.stringify({schema:1,image,tag,commit,version,digest,platform,createdAt:new Date().toISOString()},null,2)+'\n');
 JS
-cp -- deploy/02-update-server.sh "$BUNDLE/02-update-server.sh"
+cp -- "$SOURCE_DIR/deploy/02-update-server.sh" "$BUNDLE/02-update-server.sh"
 chmod 755 "$BUNDLE/02-update-server.sh"
 tar -czf "$BUNDLE.tar.gz" -C "$ROOT/.release" "$VERSION-$TAG"
 rm -- "$STATE"
