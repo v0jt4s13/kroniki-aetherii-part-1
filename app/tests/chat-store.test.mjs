@@ -11,7 +11,7 @@ test('chat history pagination, read cursors, reset, failed write rollback and st
  const dir=mkdtempSync(join(tmpdir(),'aetherii-store-')),path=join(dir,'chat.sqlite');let store=createChatStore(path);
  try{
   for(let i=0;i<55;i++)await store.run('send',{room:'ABC123',player:i%2?'a':'b',client:`message-${i}`,id:`id-${i}`,text:`text-${i}`,version:1});
-  const page=await store.run('history',{room:'ABC123',player:'a'});assert.equal(page.messages.length,50);assert.equal(page.hasMore,true);assert.equal(page.unreadCount,28);
+  const page=await store.run('history',{room:'ABC123',player:'a'});assert.equal(store.ready(),true);assert.equal(page.messages.length,50);assert.equal(page.hasMore,true);assert.equal(page.unreadCount,28);
   const old=await store.run('history',{room:'ABC123',player:'a',before:page.messages[0].sequence});assert.equal(old.messages.length,5);assert.equal(old.hasMore,false);
   await store.run('read',{room:'ABC123',player:'a',sequence:page.cursor});assert.equal((await store.run('history',{room:'ABC123',player:'a'})).unreadCount,0);
   const other=await store.run('history',{room:'ZZZ999',player:'a'});assert.deepEqual(other.messages,[]);

@@ -12,6 +12,7 @@ import { createInvitations } from './invitations.mjs';
 import { createCommunication } from './communication.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const appVersion = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8')).version;
 if (existsSync(resolve(root, '.env'))) process.loadEnvFile(resolve(root, '.env'));
 const production = process.argv.includes('--production');
 const basePath = publicBasePath();
@@ -130,6 +131,8 @@ const server = http.createServer(async (req, res) => {
         return json(res, 200, { token: p.token, state: gameView(g, p.id) });
       }
       if (url.pathname === '/api/health') return json(res, 200, { ok: true });
+      if (url.pathname === '/api/version' && req.method === 'GET') return json(res, 200, { version: appVersion });
+      if (url.pathname === '/api/readiness' && req.method === 'GET') return json(res, communication.ready() ? 200 : 503, { ok: Boolean(communication.ready()) });
       if (url.pathname === '/api/preview' && req.method === 'GET') return json(res, 200, view(demo, demo.players[0].id));
       if (req.method === 'POST' && url.pathname === '/api/rooms') {
         const body = await readBody(req);

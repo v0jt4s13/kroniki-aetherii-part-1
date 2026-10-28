@@ -69,6 +69,7 @@ export function createCommunication({server,basePath,dataDir,getRoom,accounts,mu
     });
   });
   return {
+    ready:()=>store.ready(),
     flags(g,p){return {enabled:enabled&&!g.ai&&g.communicationApproved===true&&p.communicationBlocked!==true,approved:g.communicationApproved===true,voice,closed:g.communicationClosed===true};},
     async route(req,res,url,g,p,endpoint){
       if(!['communication-ticket','messages','voice-credentials','communication-settings'].includes(endpoint))return false;

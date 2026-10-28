@@ -10,3 +10,4 @@ app/.env
 .codex
 app/test-results
 app/playwright-report
+.release

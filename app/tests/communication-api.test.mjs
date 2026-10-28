@@ -34,6 +34,8 @@ test('private invitations, durable chat, isolation, revocation, voice signaling 
   const replay=new WebSocket(base.replace('http','ws')+prefix+path+'/communication',{headers:{Origin:base}});sockets.push(replay);
   await new Promise((resolve,reject)=>{replay.once('open',()=>replay.send(JSON.stringify({type:'auth',ticket:usedTicket})));replay.once('close',code=>{assert.equal(code,1008);resolve();});replay.once('error',reject);});
   assert.equal(snap.messages.length,0);
+  assert.equal((await req('/api/version')).body.version,JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8')).version);
+  assert.equal((await req('/api/readiness')).status,200);
   sa.tx({type:'chat.send',clientMessageId:'message-0001',text:'<script>alert(1)</script>',version:snap.version});
   const received=await sb.wait('chat.message');assert.equal(received.message.text,'<script>alert(1)</script>');assert.equal(received.message.playerId,a.state.me);
   sa.tx({type:'chat.send',clientMessageId:'message-0001',text:'different',version:snap.version});await sa.wait('chat.ack',e=>e.duplicate);assert.equal((await req(path+'/messages',undefined,a.token)).body.messages.length,1);

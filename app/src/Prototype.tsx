@@ -1,4 +1,5 @@
 import { useCommunication } from './useCommunication';
+import { version as gameVersion } from '../package.json';
 import { appPath } from './app-path';
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react';
 import { CardStackIcon, CheckIcon, ChevronRightIcon, CopyIcon, Cross2Icon, HomeIcon, InfoCircledIcon, LayersIcon, MinusIcon, PlusIcon, ReloadIcon, Share2Icon, ShuffleIcon, TimerIcon } from '@radix-ui/react-icons';
@@ -202,6 +203,7 @@ export default function Prototype() {
     <BottomSheet open={Boolean(visiblePanel)} onOpenChange={v => { if (!v && !mandatory) { setPanel(null); setError(''); } }} title={title[visiblePanel || 'rules']} snap={visiblePanel === 'trade' ? 0.9 : 0.78}>
       <div className={`game-sheet${visiblePanel === 'trade' ? ' trade-sheet' : ''}`}>
         {!mandatory && <button className="sheet-close" aria-label="Zamknij panel" onClick={() => { setPanel(null); setError(''); }}><Cross2Icon/></button>}
+        {visiblePanel === 'rules' && <span className="rules-version" aria-label={`Wersja gry ${gameVersion}`}>v{gameVersion}</span>}
         {visiblePanel === 'chat' && state && <section className="communication-panel" aria-label="Prywatna komunikacja">
           <p className="chat-privacy">Tylko uczestnicy tej gry · wiadomości przechowywane 30 dni.</p>
           {!state.communication?.approved&&<p>Gospodarz musi potwierdzić obecny skład graczy przed otwarciem rozmowy.</p>}

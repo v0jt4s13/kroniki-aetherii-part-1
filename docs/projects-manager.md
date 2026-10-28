@@ -1,5 +1,12 @@
 # Wdrożenie przez projects_manager
 
+Aktualny proces publikacji istniejącej instalacji obsługują dwa wykonywalne pliki:
+`deploy/01-publish-repo.sh` (wersja, testy, Git i GHCR) oraz
+`deploy/02-update-server.sh` (manifest, backup, manager i kontrola produkcji).
+[Instrukcja skryptów](publikacja-skrypty.md) uwzględnia czat, WebSocket i kontrolę
+magazynu danych. Poniższe komendy ręczne pozostają opisem mechanizmu, nie pełną
+procedurą odbioru nowej wersji.
+
 Przygotowana konfiguracja projektu `kroniki-aetherii` znajduje się w repozytorium
 `ops02/projects_manager`, w `production_projects/kroniki-aetherii.env`.
 Konfiguracja i pierwsze wdrożenie: jego `docs/kroniki-aetherii.md`; wdrożenie nowej wersji

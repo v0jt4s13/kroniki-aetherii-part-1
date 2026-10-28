@@ -113,6 +113,10 @@
 .game-sheet p { color:#656452; font:400 17px/1.5 'DM Sans',sans-serif; }
 .game-sheet h3 { font:700 21px/1.4 'Libre Baskerville',Georgia,serif; margin:7px 0 0; color:#254b35; }
 .sheet-close { position:absolute; top:31px; right:14px; display:grid; place-items:center; width:29px; height:29px; border:0; border-radius:50%; background:#e9dfc9; color:#37513c; }
+.rules-version { position:absolute; top:31px; right:54px; max-width:100px; font:500 14px/29px 'DM Sans',sans-serif; color:#37513c; white-space:nowrap; }
+.native-sheet .rules-version { top:17px; }
+:is(.bottom-sheet,.native-sheet):has(.rules-version) .sheet-title { padding-right:135px; }
+[data-aetherii-theme=dark] .rules-version { color:#e9e2d0; }
 .invite-code { text-align:center; font:700 32px 'Libre Baskerville',Georgia,serif; padding:14px 0; letter-spacing:4px; }
 .select-label { display:grid; gap:6px; font:600 16px 'DM Sans',sans-serif; color:#4e5b42; min-width:0; }
 .select-label select { width:100%; min-height:48px; background:#fff9e9; color:#294c36; border:1px solid #cdbf9f; border-radius:8px; padding:8px; font:400 17px 'DM Sans',sans-serif; }

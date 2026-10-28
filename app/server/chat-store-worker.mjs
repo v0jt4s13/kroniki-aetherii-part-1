@@ -12,6 +12,7 @@ const rows = (sql, params=[]) => { const s=db.prepare(sql); try { s.bind(params)
 function persist() { const fd=openSync(path+'.tmp','w',0o600); try {writeFileSync(fd,Buffer.from(db.export())); fsyncSync(fd);} finally {closeSync(fd);} renameSync(path+'.tmp',path); }
 function prune(){db.run('DELETE FROM messages WHERE created < ?',[Date.now()-30*86400000]);persist();}
 prune();
+parentPort.postMessage({ready:true});
 const retention=setInterval(()=>{try{prune();}catch{/* reads still exclude expired rows */}},3600000);retention.unref();
 function version(room) { db.run('INSERT OR IGNORE INTO rooms(room) VALUES (?)',[room]); return rows('SELECT version FROM rooms WHERE room=?',[room])[0].version; }
 const message = r => ({ sequence:r.sequence, playerId:r.player, id:r.id, createdAt:r.created, text:r.text, clientMessageId:r.client });
