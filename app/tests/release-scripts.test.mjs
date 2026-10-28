@@ -17,7 +17,9 @@ if name=='git':
  elif a[:2]==['rev-parse','HEAD']:print(('d' if (r/'advanced').exists() else 'b' if (r/'committed').exists() else 'a')*40)
  elif a and a[0]=='archive':
   with tarfile.open(fileobj=sys.stdout.buffer,mode='w|') as archive:
-   for name in ['app','deploy']:archive.add(r/name,arcname=name)
+   def tracked_only(entry):
+    return None if entry.name.startswith(('app/dist','app/node_modules')) else entry
+   for name in ['app','deploy']:archive.add(r/name,arcname=name,filter=tracked_only)
  elif a and a[0]=='status':
   if os.environ.get('DIRTY'):print(' M unrelated.txt')
   elif v!='0.1.0' and not (r/'committed').exists():
@@ -26,6 +28,13 @@ if name=='git':
  elif a and a[0]=='commit':(r/'committed').touch()
  sys.exit(0)
 if name=='npm':
+ if '--prefix' in a:
+  app=pathlib.Path(a[a.index('--prefix')+1])
+  if a[-2:]==['run','test:prefix']:
+   (app/'dist/client').mkdir(parents=True,exist_ok=True)
+   (app/'dist/client/play.html').write_text('built before API tests')
+  if a[-1]=='test' and not (app/'dist/client/play.html').is_file():
+   print('Production API tests require a prior build',file=sys.stderr);sys.exit(1)
  if 'test' in a and os.environ.get('FAIL_TESTS'):sys.exit(1)
  sys.exit(0)
 if name=='docker':
@@ -91,6 +100,9 @@ test('resume after a corrective commit builds the recorded release snapshot and 
  const manifest=JSON.parse(readFileSync(join(r,'.release','0.1.1-'+COMMIT.slice(0,12),'manifest.json')));
  assert.equal(manifest.commit,COMMIT);assert.equal(manifest.version,'0.1.1');
  const log=calls(r);assert.ok(log.some(c=>c[0]==='git'&&c[1]==='archive'&&c[2]===COMMIT));
+ const archivedTests=log.findIndex(c=>c[0]==='npm'&&c.at(-1)==='test'&&c.includes('--prefix')&&c[c.indexOf('--prefix')+1].includes('.release/source-'));
+ const archivedBuild=log.findIndex(c=>c[0]==='npm'&&c.at(-1)==='test:prefix'&&c.includes('--prefix')&&c[c.indexOf('--prefix')+1].includes('.release/source-'));
+ assert.ok(archivedBuild>=0&&archivedTests>archivedBuild,'A cold release snapshot must be built before its production API tests');
  assert.ok(log.filter(c=>c[0]==='docker'&&c[1]==='build').every(c=>c.at(-1).includes('.release/source-')));
  assert.equal(log.filter(c=>c[0]==='git'&&c[1]==='commit').length,1);
 });

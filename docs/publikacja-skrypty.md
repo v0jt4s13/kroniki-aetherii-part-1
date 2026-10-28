@@ -28,7 +28,7 @@ Skrypt wykonuje:
 
 1. Blokadę równoległej publikacji i kontrolę repo, narzędzi oraz gałęzi.
 2. Podbicie wersji patch w `app/package.json` i obu miejscach wersji w lockfile, np. `0.1.0 -> 0.1.1`. Ten sam numer pokazuje panel zasad obok X i `/api/version`. Nie jest to numer reguł silnika `rulesVersion`.
-3. `npm ci`, testy, kontrolę runtime, build z testem prefiksu i test statycznego opakowania Sites. Automatyzacja przeglądarki nie jest uruchamiana.
+3. `npm ci`, kontrolę runtime, build z testem prefiksu, następnie pełne testy i test statycznego opakowania Sites. Build musi poprzedzać testy API, ponieważ serwer produkcyjny potrzebuje `dist/client`, którego nie ma w czystej migawce Git. Automatyzacja przeglądarki nie jest uruchamiana.
 4. Commit `Release <wersja>` zawierający wyłącznie dwa pliki wersji i zwykły push na `origin/main`.
 5. Budowę obrazu produkcyjnego z etykietami wersji/SHA, sprawdzenie ścieżek grafik i inicjalizacji SQLite, publikację tagu SHA do GHCR oraz odczyt digestu. Nie publikuje `latest`.
 6. Pakiet `.release/<wersja>-<SHA>/` i `.tar.gz`, zawierający `manifest.json` oraz samodzielny skrypt serwerowy. Pakiet nie zawiera danych graczy, konfiguracji runtime ani sekretów.

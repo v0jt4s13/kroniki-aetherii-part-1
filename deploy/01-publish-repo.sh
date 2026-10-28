@@ -140,9 +140,11 @@ if [[ -n "$COMMIT" ]]; then
 fi
 STEP=testy
 npm --prefix "$TEST_ROOT/app" ci --no-audit --no-fund
-npm --prefix "$TEST_ROOT/app" test
 npm --prefix "$TEST_ROOT/app" run check:runtime
+# Production API tests serve dist/client. A git archive never contains dist,
+# so build it first (test:prefix includes the build and prefixed API checks).
 npm --prefix "$TEST_ROOT/app" run test:prefix
+npm --prefix "$TEST_ROOT/app" test
 npm --prefix "$TEST_ROOT/app" run test:sites
 if [[ -z "$COMMIT" ]]; then
   STEP=commit-wersji
