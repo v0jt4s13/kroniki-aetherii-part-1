@@ -45,28 +45,39 @@ if name=='gh':
  remote=r/'github';remote.mkdir(exist_ok=True);meta=remote/'release.json';assets=remote/'assets';assets.mkdir(exist_ok=True)
  if a[:2]==['auth','status']:sys.exit(0)
  if a and a[0]=='api':
-  if '/releases?' in a[1]:
+  endpoint=a[1];method=a[a.index('--method')+1] if '--method' in a else 'GET'
+  if method=='POST' and '/assets?name=' in endpoint:
+   assert 'Content-Type: application/octet-stream' in a
+   assert ('Content-Length: '+str(pathlib.Path(a[a.index('--input')+1]).stat().st_size)) in a
+   if os.environ.get('FAIL_GITHUB_UPLOAD'):sys.exit(1)
+   src=pathlib.Path(a[a.index('--input')+1]);shutil.copyfile(src,assets/src.name);m=json.load(open(meta));asset={'id':100+len(m['assets']),'name':src.name};m['assets'].append(asset);meta.write_text(json.dumps(m));print(json.dumps(asset))
+  elif method=='POST' and endpoint.endswith('/releases'):
+   assert 'Content-Type: application/json' in a
+   m=json.load(open(a[a.index('--input')+1]));m.update({'id':42,'assets':[]});meta.write_text(json.dumps(m));print(json.dumps(m))
+  elif method=='PATCH':
+   assert 'Content-Type: application/json' in a
+   assert endpoint.endswith('/releases/42');m=json.load(open(meta));m.update(json.load(open(a[a.index('--input')+1])));meta.write_text(json.dumps(m));print(json.dumps(m))
+  elif '/releases?' in endpoint:
    assert '--paginate' in a and '--jq' in a and chr(92) not in a[a.index('--jq')+1]
+   if meta.exists() and not(os.environ.get('STALE_RELEASE_LIST') and json.load(open(meta))['draft']):print(meta.read_text())
+  elif '/releases/assets/' in endpoint:
+   item=next(x for x in json.load(open(meta))['assets'] if x['id']==int(endpoint.rsplit('/',1)[1]));sys.stdout.buffer.write((assets/item['name']).read_bytes())
+  elif endpoint.endswith('/releases/42'):
    if meta.exists():print(meta.read_text())
-  elif '/git/ref/tags/' in a[1]:
+   else:print('HTTP 404: Not Found',file=sys.stderr);sys.exit(1)
+  elif '/git/ref/tags/' in endpoint:
    if os.environ.get('CONFLICTING_GITHUB_TAG') or (meta.exists() and not json.load(open(meta))['draft']):print(json.dumps({'object':{'type':'commit'}}))
    else:print('HTTP 404: Not Found',file=sys.stderr);sys.exit(1)
-  elif '/commits/' in a[1]:
+  elif '/commits/' in endpoint:
    if os.environ.get('CONFLICTING_GITHUB_TAG'):print('e'*40)
    elif meta.exists():print(json.load(open(meta))['target_commitish'])
    else:print('HTTP 404: Not Found',file=sys.stderr);sys.exit(1)
   else:
    if meta.exists() and not json.load(open(meta))['draft']:print(meta.read_text())
    else:print('HTTP 404: Not Found',file=sys.stderr);sys.exit(1)
- elif a[:2]==['release','create']:
-  meta.write_text(json.dumps({'tag_name':a[2],'draft':True,'target_commitish':a[a.index('--target')+1],'assets':[]}))
- elif a[:2]==['release','upload']:
-  if os.environ.get('FAIL_GITHUB_UPLOAD'):sys.exit(1)
-  src=pathlib.Path(a[3]);shutil.copyfile(src,assets/src.name);m=json.load(open(meta));m['assets'].append({'name':src.name});meta.write_text(json.dumps(m))
  elif a[:2]==['release','download']:
   name=a[a.index('--pattern')+1];sys.stdout.buffer.write((assets/name).read_bytes())
- elif a[:2]==['release','edit']:
-  m=json.load(open(meta));m['draft']=False;meta.write_text(json.dumps(m))
+ else:raise AssertionError('Unexpected tag-based release command')
  sys.exit(0)
 if name=='docker':
  if a and a[0]=='info':
@@ -196,7 +207,7 @@ test('GitHub upload-only publishes an existing package without bump/build and re
  const retry=await run(r,'01-publish-repo.sh',['--upload-package',archive]);assert.equal(retry.code,0,retry.out);
  const extra=calls(r).slice(before);assert.ok(!extra.some(c=>['docker','npm'].includes(c[0])&&!(c[0]==='npm'&&c.includes('--version'))));
  assert.ok(!extra.some(c=>c[0]==='git'&&['commit','push'].includes(c[1])));
- assert.ok(!extra.some(c=>c[0]==='gh'&&c[1]==='release'&&c[2]==='upload'));
+ assert.ok(!extra.some(c=>c[0]==='gh'&&c.includes('--method')&&['POST','PATCH'].includes(c[c.indexOf('--method')+1])));
  const release=JSON.parse(readFileSync(join(r,'github/release.json')));assert.equal(release.draft,false);assert.equal(release.tag_name,'v0.1.1');assert.equal(release.assets.length,3);
  assert.equal(JSON.parse(readFileSync(join(r,'app/package.json'))).version,'0.1.1');
  writeFileSync(join(r,'github/assets',archive.split('/').at(-1)),'tampered');
@@ -248,5 +259,27 @@ test('GitHub download under sudo reads credentials as the original operator',asy
 
 test('an existing GitHub tag for another commit cannot be reused or overwritten',async t=>{
  const r=fixture(t),x=await run(r,'01-publish-repo.sh',[],{CONFLICTING_GITHUB_TAG:'1'});assert.notEqual(x.code,0);assert.ok(x.out.includes('Tag GitHub wskazuje inny commit'),x.out);
- assert.ok(!calls(r).some(c=>c[0]==='gh'&&c[1]==='release'&&['create','upload','edit'].includes(c[2])));
+ assert.ok(!calls(r).some(c=>c[0]==='gh'&&c.includes('--method')&&['POST','PATCH'].includes(c[c.indexOf('--method')+1])));
+});
+
+
+test('creation and retry use release IDs when GitHub draft lists remain stale',async t=>{
+ const r=fixture(t);
+ const first=await run(r,'01-publish-repo.sh',[],{STALE_RELEASE_LIST:'1',FAIL_GITHUB_UPLOAD:'1'});assert.notEqual(first.code,0);
+ assert.equal(JSON.parse(readFileSync(join(r,'.release/github-release-v0.1.1.json'))).id,42);
+ assert.equal(JSON.parse(readFileSync(join(r,'github/release.json'))).draft,true);
+ const retry=await run(r,'01-publish-repo.sh',['--resume'],{REGISTRY_EXISTS:'1',STALE_RELEASE_LIST:'1'});assert.equal(retry.code,0,retry.out);
+ const log=calls(r);assert.equal(log.filter(c=>c[0]==='gh'&&c[1]==='api'&&c[2].endsWith('/releases')&&c.includes('POST')).length,1);
+ assert.ok(log.some(c=>c[0]==='gh'&&c[1]==='api'&&c[2].endsWith('/releases/42')&&!c.includes('--method')));
+ assert.equal(JSON.parse(readFileSync(join(r,'github/release.json'))).draft,false);
+});
+
+
+test('an existing untagged-URL draft is adopted by ID without creating a replacement',async t=>{
+ const r=fixture(t);mkdirSync(join(r,'github'),{recursive:true});
+ writeFileSync(join(r,'github/release.json'),JSON.stringify({id:42,tag_name:'v0.1.1',target_commitish:COMMIT,draft:true,html_url:'https://github.com/example/releases/tag/untagged-old',assets:[]}));
+ const x=await run(r,'01-publish-repo.sh');assert.equal(x.code,0,x.out);
+ const log=calls(r);assert.equal(log.filter(c=>c[0]==='gh'&&c[1]==='api'&&c[2].endsWith('/releases')&&c.includes('POST')).length,0);
+ const cache=JSON.parse(readFileSync(join(r,'.release/github-release-v0.1.1.json')));assert.equal(cache.id,42);
+ assert.equal(JSON.parse(readFileSync(join(r,'github/release.json'))).draft,false);
 });

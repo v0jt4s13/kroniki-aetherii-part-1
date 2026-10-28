@@ -109,6 +109,6 @@ Backup danych to archiwum z zatrzymanej aplikacji, a nie automatyczna instrukcja
 
 Po udanym wdrożeniu otwórz zasady i sprawdź numer wersji przy X. Głos wymaga osobnego odbioru mikrofonów na dwóch urządzeniach przez skonfigurowany TURN. Restart aplikacji rozłącza głos; nie ma automatycznego włączania mikrofonu po powrocie.
 
-Wznowienie po błędzie GitHub zachowuje stan wydania i oryginalne bajty archiwum. Szkic jest odnajdywany przez API listy Releases, ponieważ endpoint wydania według tagu służy wydaniom opublikowanym. Prawidłowy tag wskazujący inny commit albo istniejący załącznik o innej zawartości powoduje zatrzymanie zamiast nadpisania.
+Wznowienie po błędzie GitHub zachowuje stan wydania i oryginalne bajty archiwum. Szkic jest wykrywany na liście tylko przy pierwszym uruchomieniu. Tworzenie zachowuje identyfikator z odpowiedzi POST, a kolejne odczyty, wysyłanie załączników i publikacja używają ID. Plik `.release/github-release-v<wersja>.json` umożliwia wznowienie także wtedy, gdy lista szkiców nie została jeszcze odświeżona. Istniejący szkic z wcześniejszej próby zostanie wykorzystany ponownie; nie trzeba go usuwać. Prawidłowy tag wskazujący inny commit albo istniejący załącznik o innej zawartości powoduje zatrzymanie zamiast nadpisania.
 
 Referencje narzędzia: [tworzenie GitHub Release](https://cli.github.com/manual/gh_release_create), [pobieranie załączników](https://cli.github.com/manual/gh_release_download).
