@@ -28,7 +28,7 @@ if (( EUID == 0 )); then
 fi
 GITHUB_REPO=v0jt4s13/kroniki-aetherii-part-1
 publish_github_package() {
-  local archive stage version commit sha release asset existing draft
+  local archive stage version commit sha release asset existing draft release_id asset_id cache
   archive="$(realpath -- "$1")"
   stage="$(mktemp -d "$ROOT/.release/github-upload.XXXXXX")"
   # Read the existing package as data, preserving its original bytes and manifest.
@@ -66,20 +66,48 @@ PYCODE
   # Bootstrap updater is the reviewed current tool, also for an older app package.
   cp -- "$ROOT/deploy/02-update-server.sh" "$stage/02-update-server.sh"
   (cd "$stage"; sha256sum "$(basename -- "$archive")" 02-update-server.sh > "$(basename -- "$archive").sha256")
-  # The /releases/tags endpoint only returns published releases. Listing also
-  # finds our draft after an interrupted upload, without creating duplicates.
-  gh api "repos/$GITHUB_REPO/releases?per_page=100" --paginate --jq ".[] | select(.tag_name == \"$release\")" > "$stage/release.json"
-  if [[ ! -s "$stage/release.json" ]]; then
-    # Never attach this app version to an unrelated, pre-existing Git tag.
-    if gh api "repos/$GITHUB_REPO/git/ref/tags/$release" > "$stage/tag-ref.json" 2> "$stage/tag-error.log"; then
-      existing="$(gh api "repos/$GITHUB_REPO/commits/tags/$release" --jq .sha)"
-      [[ "$existing" == "$commit" ]] || { echo 'Tag GitHub wskazuje inny commit.' >&2; return 1; }
-    else
-      grep -Eq 'HTTP 404|Not Found' "$stage/tag-error.log" || return 1
-    fi
-    gh release create "$release" --repo "$GITHUB_REPO" --draft --target "$commit" --title "Kroniki Aetherii $version" --notes "Wersja $version, commit $commit. Pakiet serwerowy i jego suma SHA-256."
+  cache="$ROOT/.release/github-release-$release.json"
+  if [[ -f "$cache" ]]; then
+    release_id="$(python3 - "$cache" "$version" "$commit" <<'PYCODE'
+import json,sys
+r=json.load(open(sys.argv[1]));assert r['version']==sys.argv[2] and r['commit']==sys.argv[3]
+assert type(r['id']) is int and r['id']>0;print(r['id'])
+PYCODE
+)"
+    gh api "repos/$GITHUB_REPO/releases/$release_id" > "$stage/release.json"
+  else
+    # Listing is only discovery. Once an ID is known, never rediscover it by tag.
     gh api "repos/$GITHUB_REPO/releases?per_page=100" --paginate --jq ".[] | select(.tag_name == \"$release\")" > "$stage/release.json"
+    if [[ ! -s "$stage/release.json" ]]; then
+      if gh api "repos/$GITHUB_REPO/git/ref/tags/$release" > "$stage/tag-ref.json" 2> "$stage/tag-error.log"; then
+        existing="$(gh api "repos/$GITHUB_REPO/commits/tags/$release" --jq .sha)"
+        [[ "$existing" == "$commit" ]] || { echo 'Tag GitHub wskazuje inny commit.' >&2; return 1; }
+      else
+        grep -Eq 'HTTP 404|Not Found' "$stage/tag-error.log" || return 1
+      fi
+      python3 - "$stage/create.json" "$release" "$commit" "$version" <<'PYCODE'
+import json,sys
+path,tag,commit,version=sys.argv[1:]
+with open(path,'w') as f:json.dump({'tag_name':tag,'target_commitish':commit,'name':'Kroniki Aetherii '+version,'body':'Wersja '+version+', commit '+commit+'. Pakiet serwerowy i suma SHA-256.','draft':True},f)
+PYCODE
+      # Retain the POST response: the list can lag behind creation of a draft.
+      gh api "repos/$GITHUB_REPO/releases" --method POST --header 'Content-Type: application/json' --input "$stage/create.json" > "$stage/release.json"
+    fi
   fi
+  release_id="$(python3 - "$stage/release.json" "$release" <<'PYCODE'
+import json,sys
+try:r=json.load(open(sys.argv[1]))
+except (ValueError,OSError):raise SystemExit('GitHub nie zwrocil jednoznacznych metadanych wydania. Nie utworzono kolejnego szkicu.')
+if r.get('tag_name')!=sys.argv[2] or type(r.get('id')) is not int or r['id']<=0:raise SystemExit('Niezgodne metadane GitHub Release')
+print(r['id'])
+PYCODE
+)"
+  python3 - "$cache" "$release_id" "$version" "$commit" <<'PYCODE'
+import json,os,sys
+path,id,version,commit=sys.argv[1:]
+with open(path+'.tmp','w') as f:json.dump({'id':int(id),'version':version,'commit':commit},f)
+os.replace(path+'.tmp',path)
+PYCODE
   draft="$(python3 - "$stage/release.json" "$release" <<'PYCODE'
 import json,sys
 r=json.load(open(sys.argv[1]));assert r['tag_name']==sys.argv[2];print('true' if r['draft'] else 'false')
@@ -101,13 +129,23 @@ import json,sys
 sys.exit(0 if any(a['name']==sys.argv[2] for a in json.load(open(sys.argv[1]))['assets']) else 1)
 PYCODE
     then
-      gh release download "$release" --repo "$GITHUB_REPO" --pattern "$asset" --output - > "$stage/existing-asset"
+      asset_id="$(python3 - "$stage/release.json" "$asset" <<'PYCODE'
+import json,sys
+items=[a for a in json.load(open(sys.argv[1]))['assets'] if a['name']==sys.argv[2]]
+assert len(items)==1 and type(items[0].get('id')) is int and items[0]['id']>0
+print(items[0]['id'])
+PYCODE
+)"
+      gh api "repos/$GITHUB_REPO/releases/assets/$asset_id" --header 'Accept: application/octet-stream' > "$stage/existing-asset"
       cmp -- "$stage/$asset" "$stage/existing-asset" || { echo "Zalacznik $asset juz istnieje z inna zawartoscia. Nie nadpisano go." >&2; return 1; }
     else
-      gh release upload "$release" "$stage/$asset" --repo "$GITHUB_REPO"
+      gh api "https://uploads.github.com/repos/$GITHUB_REPO/releases/$release_id/assets?name=$asset" --method POST --header 'Content-Type: application/octet-stream' --header "Content-Length: $(wc -c < "$stage/$asset")" --input "$stage/$asset" > "$stage/upload-response.json"
     fi
   done
-  if [[ "$draft" == true ]]; then gh release edit "$release" --repo "$GITHUB_REPO" --draft=false; fi
+  if [[ "$draft" == true ]]; then
+    printf '{"draft":false}\n' > "$stage/publish.json"
+    gh api "repos/$GITHUB_REPO/releases/$release_id" --method PATCH --header 'Content-Type: application/json' --input "$stage/publish.json" > "$stage/published.json"
+  fi
   [[ "$(gh api "repos/$GITHUB_REPO/commits/tags/$release" --jq .sha)" == "$commit" ]]
   printf 'GitHub Release: https://github.com/%s/releases/tag/%s\nNa serwerze: sudo ./02-update-server.sh --release %s\n' "$GITHUB_REPO" "$release" "$release"
 }
