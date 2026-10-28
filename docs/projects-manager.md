@@ -2,7 +2,7 @@
 
 Aktualny proces publikacji istniejącej instalacji obsługują dwa wykonywalne pliki:
 `deploy/01-publish-repo.sh` (wersja, testy, Git i GHCR) oraz
-`deploy/02-update-server.sh` (manifest, backup, manager i kontrola produkcji).
+`deploy/02-update-server.sh` (pobranie GitHub Release lub lokalny manifest, backup, manager i kontrola produkcji).
 [Instrukcja skryptów](publikacja-skrypty.md) uwzględnia czat, WebSocket i kontrolę
 magazynu danych. Poniższe komendy ręczne pozostają opisem mechanizmu, nie pełną
 procedurą odbioru nowej wersji.

@@ -5,17 +5,19 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 usage() {
   cat <<'HELP'
-Publikacja Kronik z repo do GHCR:
+Publikacja Kronik do GHCR i GitHub Releases:
   ./deploy/01-publish-repo.sh [--bump patch|minor|major] [--platform linux/amd64]
   ./deploy/01-publish-repo.sh --resume
   ./deploy/01-publish-repo.sh --check-runtime
+  ./deploy/01-publish-repo.sh --upload-package .release/<wersja>-<SHA>.tar.gz
 
 Wymaga czystego repo main. Podbija wersje, testuje, commituje tylko package.json
 oraz package-lock.json, pushuje main i obraz z tagiem SHA. Nie zmienia produkcji.
-Wynik: .release/<wersja>-<SHA>/ i archiwum .tar.gz do przeniesienia na serwer.
+Wynik: pakiet w .release/ oraz zalaczniki GitHub Release v<wersja>.
 --resume kontynuuje przerwana publikacje bez ponownego podbijania wersji.
 Mozna wywolac przez sudo: Git/npm wykona pierwotny uzytkownik, Docker moze uzyc sudo.
 --check-runtime sprawdza tylko wybor Node/npm, bez zmian repo i bez publikacji.
+--upload-package publikuje gotowy pakiet w GitHub, bez nowej wersji i budowy obrazu.
 HELP
 }
 if [[ "${1:-}" == --help || "${1:-}" == -h ]]; then usage; exit 0; fi
@@ -24,6 +26,91 @@ if (( EUID == 0 )); then
   [[ -n "${SUDO_USER:-}" && "$SUDO_USER" != root ]] || { echo 'Uruchom jako wlasciciel repo lub przez sudo z jego konta.' >&2; exit 1; }
   exec sudo -u "$SUDO_USER" -H bash "$SCRIPT_DIR/01-publish-repo.sh" "$@"
 fi
+GITHUB_REPO=v0jt4s13/kroniki-aetherii-part-1
+publish_github_package() {
+  local archive stage version commit sha release asset existing draft
+  archive="$(realpath -- "$1")"
+  stage="$(mktemp -d "$ROOT/.release/github-upload.XXXXXX")"
+  # Read the existing package as data, preserving its original bytes and manifest.
+  python3 - "$archive" "$stage" <<'PYCODE'
+import json,re,sys,tarfile,shutil
+from pathlib import Path
+archive=Path(sys.argv[1]);out=Path(sys.argv[2])
+with tarfile.open(archive,'r:gz') as t:
+    members=t.getmembers()
+    manifests=[m for m in members if m.name.endswith('/manifest.json') and m.isfile()]
+    if len(manifests)!=1 or manifests[0].size>16384:raise SystemExit('Nieprawidlowy manifest pakietu')
+    m=json.load(t.extractfile(manifests[0]))
+    if m.get('schema')!=1 or m.get('image')!='ghcr.io/v0jt4s13/kroniki-aetherii-part-1':raise SystemExit('Nieprawidlowy obraz pakietu')
+    if not re.fullmatch(r'\d+\.\d+\.\d+',str(m.get('version',''))) or not re.fullmatch(r'[a-f0-9]{40}',str(m.get('commit',''))):raise SystemExit('Nieprawidlowa wersja/SHA')
+    if m.get('tag')!=m['commit'][:12] or not re.fullmatch(r'sha256:[a-f0-9]{64}',str(m.get('digest',''))) or m.get('platform') not in ['linux/amd64','linux/arm64']:raise SystemExit('Nieprawidlowe metadane obrazu')
+    prefix=m['version']+'-'+m['tag']
+    allowed={prefix,prefix+'/manifest.json',prefix+'/02-update-server.sh'}
+    names=[x.name.rstrip('/') for x in members]
+    if len(names)!=len(set(names)) or any(x.name.rstrip('/') not in allowed or not(x.isfile() or x.isdir()) for x in members):raise SystemExit('Nieoczekiwana zawartosc archiwum')
+    if set(x.name for x in members if x.isfile())!={prefix+'/manifest.json',prefix+'/02-update-server.sh'}:raise SystemExit('Niekompletny pakiet')
+    if any(x.size>1048576 for x in members):raise SystemExit('Za duzy plik pakietu')
+    if archive.name!=prefix+'.tar.gz':raise SystemExit('Nazwa pakietu nie zgadza sie z manifestem')
+(out/'metadata.json').write_text(json.dumps(m))
+shutil.copyfile(archive,out/archive.name)
+PYCODE
+  mapfile -t PACKAGE_META < <(python3 - "$stage/metadata.json" <<'PYCODE'
+import json,sys
+m=json.load(open(sys.argv[1]));print(m['version']);print(m['commit']);print(m['tag'])
+PYCODE
+)
+  [[ ${#PACKAGE_META[@]} == 3 ]] || return 1
+  version="${PACKAGE_META[0]}"; commit="${PACKAGE_META[1]}"; sha="${PACKAGE_META[2]}"; release="v$version"
+  git merge-base --is-ancestor "$commit" HEAD
+  git show "$commit:app/package.json" | python3 -c 'import json,sys;assert json.load(sys.stdin)["version"]==sys.argv[1]' "$version"
+  # Bootstrap updater is the reviewed current tool, also for an older app package.
+  cp -- "$ROOT/deploy/02-update-server.sh" "$stage/02-update-server.sh"
+  (cd "$stage"; sha256sum "$(basename -- "$archive")" 02-update-server.sh > "$(basename -- "$archive").sha256")
+  # The /releases/tags endpoint only returns published releases. Listing also
+  # finds our draft after an interrupted upload, without creating duplicates.
+  gh api "repos/$GITHUB_REPO/releases?per_page=100" --paginate --jq ".[] | select(.tag_name == \"$release\")" > "$stage/release.json"
+  if [[ ! -s "$stage/release.json" ]]; then
+    # Never attach this app version to an unrelated, pre-existing Git tag.
+    if gh api "repos/$GITHUB_REPO/git/ref/tags/$release" > "$stage/tag-ref.json" 2> "$stage/tag-error.log"; then
+      existing="$(gh api "repos/$GITHUB_REPO/commits/tags/$release" --jq .sha)"
+      [[ "$existing" == "$commit" ]] || { echo 'Tag GitHub wskazuje inny commit.' >&2; return 1; }
+    else
+      grep -Eq 'HTTP 404|Not Found' "$stage/tag-error.log" || return 1
+    fi
+    gh release create "$release" --repo "$GITHUB_REPO" --draft --target "$commit" --title "Kroniki Aetherii $version" --notes "Wersja $version, commit $commit. Pakiet serwerowy i jego suma SHA-256."
+    gh api "repos/$GITHUB_REPO/releases?per_page=100" --paginate --jq ".[] | select(.tag_name == \"$release\")" > "$stage/release.json"
+  fi
+  draft="$(python3 - "$stage/release.json" "$release" <<'PYCODE'
+import json,sys
+r=json.load(open(sys.argv[1]));assert r['tag_name']==sys.argv[2];print('true' if r['draft'] else 'false')
+PYCODE
+)"
+  if gh api "repos/$GITHUB_REPO/git/ref/tags/$release" > "$stage/tag-ref.json" 2> "$stage/tag-error.log"; then
+    existing="$(gh api "repos/$GITHUB_REPO/commits/tags/$release" --jq .sha)"
+    [[ "$existing" == "$commit" ]] || { echo 'Tag wydania wskazuje inny commit.' >&2; return 1; }
+  else
+    [[ "$draft" == true ]] && grep -Eq 'HTTP 404|Not Found' "$stage/tag-error.log" || return 1
+    python3 - "$stage/release.json" "$commit" <<'PYCODE'
+import json,sys
+assert json.load(open(sys.argv[1]))['target_commitish']==sys.argv[2]
+PYCODE
+  fi
+  for asset in "$(basename -- "$archive")" "$(basename -- "$archive").sha256" 02-update-server.sh; do
+    if python3 - "$stage/release.json" "$asset" <<'PYCODE'
+import json,sys
+sys.exit(0 if any(a['name']==sys.argv[2] for a in json.load(open(sys.argv[1]))['assets']) else 1)
+PYCODE
+    then
+      gh release download "$release" --repo "$GITHUB_REPO" --pattern "$asset" --output - > "$stage/existing-asset"
+      cmp -- "$stage/$asset" "$stage/existing-asset" || { echo "Zalacznik $asset juz istnieje z inna zawartoscia. Nie nadpisano go." >&2; return 1; }
+    else
+      gh release upload "$release" "$stage/$asset" --repo "$GITHUB_REPO"
+    fi
+  done
+  if [[ "$draft" == true ]]; then gh release edit "$release" --repo "$GITHUB_REPO" --draft=false; fi
+  [[ "$(gh api "repos/$GITHUB_REPO/commits/tags/$release" --jq .sha)" == "$commit" ]]
+  printf 'GitHub Release: https://github.com/%s/releases/tag/%s\nNa serwerze: sudo ./02-update-server.sh --release %s\n' "$GITHUB_REPO" "$release" "$release"
+}
 node_supported() {
   command -v "${1:-node}" >/dev/null 2>&1 &&
     "${1:-node}" -e 'const [m,n]=process.versions.node.split(".").map(Number);process.exit(((m===20&&n>=19)||(m===22&&n>=12)||m>22)?0:1)' >/dev/null 2>&1
@@ -52,12 +139,13 @@ select_node() {
   printf 'Brak zgodnego Node (w PATH: %s). Wymagany Node 20.19+ albo 22.12+. Zainstaluj np. nvm install 22 i ponow polecenie.\n' "$(node --version 2>/dev/null || printf brak)" >&2
   return 1
 }
-BUMP=patch; PLATFORM=linux/amd64; RESUME=0; CHECK_RUNTIME=0
+BUMP=patch; PLATFORM=linux/amd64; RESUME=0; CHECK_RUNTIME=0; UPLOAD_PACKAGE=''
 while (( $# )); do
   case "$1" in
     --bump) [[ $# -ge 2 ]] || exit 2; BUMP="$2"; shift 2 ;;
     --platform) [[ $# -ge 2 ]] || exit 2; PLATFORM="$2"; shift 2 ;;
     --resume) RESUME=1; shift ;;
+    --upload-package) [[ $# -ge 2 ]] || exit 2; UPLOAD_PACKAGE="$(realpath -- "$2")"; shift 2 ;;
     --check-runtime) CHECK_RUNTIME=1; shift ;;
     *) echo "Nieznany argument: $1" >&2; usage >&2; exit 2 ;;
   esac
@@ -68,9 +156,20 @@ select_node
 command -v npm >/dev/null || { echo 'Brak npm dla wybranego Node.' >&2; exit 1; }
 printf 'Node %s (%s), npm %s\n' "$(node --version)" "$(command -v node)" "$(npm --version)"
 if (( CHECK_RUNTIME )); then exit 0; fi
-for tool in git node npm docker python3 flock tar; do command -v "$tool" >/dev/null || { echo "Brak: $tool" >&2; exit 1; }; done
+for tool in git node npm python3 flock tar gh sha256sum cmp; do command -v "$tool" >/dev/null || { echo "Brak: $tool" >&2; exit 1; }; done
 cd "$ROOT"
 [[ "$(git rev-parse --show-toplevel)" == "$ROOT" ]] || exit 1
+gh auth status --hostname github.com >/dev/null
+if [[ -n "$UPLOAD_PACKAGE" ]]; then
+  (( ! RESUME )) || { echo '--upload-package nie laczy sie z --resume.' >&2; exit 2; }
+  [[ -z "$(git status --porcelain --untracked-files=all)" ]] || { echo 'Najpierw zatwierdz zmiany narzedzi publikacji.' >&2; exit 1; }
+  mkdir -p .release
+  exec 9>"$(git rev-parse --git-path aetherii-release.lock)"
+  flock -n 9 || exit 1
+  publish_github_package "$UPLOAD_PACKAGE"
+  exit 0
+fi
+command -v docker >/dev/null || { echo 'Brak: docker' >&2; exit 1; }
 [[ "$(git branch --show-current)" == main ]] || { echo 'Publikacja wymaga galezi main.' >&2; exit 1; }
 # Lock inside Git metadata; support worktrees and keep build context clean.
 exec 9>"$(git rev-parse --git-path aetherii-release.lock)"
@@ -196,10 +295,14 @@ mkdir -p "$BUNDLE"
 node --input-type=module - "$BUNDLE/manifest.json" "$IMAGE" "$TAG" "$COMMIT" "$VERSION" "$DIGEST" "$PLATFORM" <<'JS'
 import fs from 'node:fs';
 const [path,image,tag,commit,version,digest,platform]=process.argv.slice(2);
-fs.writeFileSync(path,JSON.stringify({schema:1,image,tag,commit,version,digest,platform,createdAt:new Date().toISOString()},null,2)+'\n');
+const core={schema:1,image,tag,commit,version,digest,platform};
+if(fs.existsSync(path)){const old=JSON.parse(fs.readFileSync(path));for(const [k,v]of Object.entries(core))if(old[k]!==v)throw Error('Istniejacy manifest wskazuje inne wydanie');}
+else fs.writeFileSync(path,JSON.stringify({...core,createdAt:new Date().toISOString()},null,2)+'\n');
 JS
 cp -- "$SOURCE_DIR/deploy/02-update-server.sh" "$BUNDLE/02-update-server.sh"
 chmod 755 "$BUNDLE/02-update-server.sh"
-tar -czf "$BUNDLE.tar.gz" -C "$ROOT/.release" "$VERSION-$TAG"
+if [[ ! -f "$BUNDLE.tar.gz" ]]; then tar -czf "$BUNDLE.tar.gz" -C "$ROOT/.release" "$VERSION-$TAG"; fi
+STEP=github-release
+publish_github_package "$BUNDLE.tar.gz"
 rm -- "$STATE"
-printf '\nOpublikowano wersje %s, SHA %s\nObraz: %s@%s\nPakiet serwerowy: %s.tar.gz\nNa serwerze po rozpakowaniu: sudo ./02-update-server.sh ./manifest.json\n' "$VERSION" "$TAG" "$REF" "$DIGEST" "$BUNDLE"
+printf '\nOpublikowano wersje %s, SHA %s\nObraz: %s@%s\nPakiet lokalny: %s.tar.gz\nPakiet serwerowy jest dostepny w GitHub Releases; SCP nie jest potrzebne.\n' "$VERSION" "$TAG" "$REF" "$DIGEST" "$BUNDLE"

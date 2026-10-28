@@ -6,7 +6,7 @@ import {join} from 'node:path';
 import {spawn} from 'node:child_process';
 const repo=new URL('../../',import.meta.url),COMMIT='b'.repeat(40),DIGEST='sha256:'+'c'.repeat(64);
 const mock=String.raw`#!/usr/bin/env python3
-import sys,os,json,pathlib,tarfile
+import sys,os,json,pathlib,tarfile,shutil
 r=pathlib.Path(os.environ['FIXTURE']);name=pathlib.Path(sys.argv[0]).name;a=sys.argv[1:]
 with (r/'calls.jsonl').open('a') as f:f.write(json.dumps([name]+a)+'\n')
 v=json.load(open(r/'app/package.json'))['version']
@@ -15,6 +15,7 @@ if name=='git':
  elif a[:2]==['branch','--show-current']:print('main')
  elif a[:2]==['rev-parse','--git-path']:print(r/'release.lock')
  elif a[:2]==['rev-parse','HEAD']:print(('d' if (r/'advanced').exists() else 'b' if (r/'committed').exists() else 'a')*40)
+ elif a and a[0]=='show':print(json.dumps({'version':v}))
  elif a and a[0]=='archive':
   with tarfile.open(fileobj=sys.stdout.buffer,mode='w|') as archive:
    def tracked_only(entry):
@@ -36,6 +37,36 @@ if name=='npm':
   if a[-1]=='test' and not (app/'dist/client/play.html').is_file():
    print('Production API tests require a prior build',file=sys.stderr);sys.exit(1)
  if 'test' in a and os.environ.get('FAIL_TESTS'):sys.exit(1)
+ sys.exit(0)
+if name=='sudo':
+ assert a[:3]==['-u','operator','-H'] and a[3]=='gh'
+ os.execvp('gh',a[3:])
+if name=='gh':
+ remote=r/'github';remote.mkdir(exist_ok=True);meta=remote/'release.json';assets=remote/'assets';assets.mkdir(exist_ok=True)
+ if a[:2]==['auth','status']:sys.exit(0)
+ if a and a[0]=='api':
+  if '/releases?' in a[1]:
+   assert '--paginate' in a and '--jq' in a and chr(92) not in a[a.index('--jq')+1]
+   if meta.exists():print(meta.read_text())
+  elif '/git/ref/tags/' in a[1]:
+   if os.environ.get('CONFLICTING_GITHUB_TAG') or (meta.exists() and not json.load(open(meta))['draft']):print(json.dumps({'object':{'type':'commit'}}))
+   else:print('HTTP 404: Not Found',file=sys.stderr);sys.exit(1)
+  elif '/commits/' in a[1]:
+   if os.environ.get('CONFLICTING_GITHUB_TAG'):print('e'*40)
+   elif meta.exists():print(json.load(open(meta))['target_commitish'])
+   else:print('HTTP 404: Not Found',file=sys.stderr);sys.exit(1)
+  else:
+   if meta.exists() and not json.load(open(meta))['draft']:print(meta.read_text())
+   else:print('HTTP 404: Not Found',file=sys.stderr);sys.exit(1)
+ elif a[:2]==['release','create']:
+  meta.write_text(json.dumps({'tag_name':a[2],'draft':True,'target_commitish':a[a.index('--target')+1],'assets':[]}))
+ elif a[:2]==['release','upload']:
+  if os.environ.get('FAIL_GITHUB_UPLOAD'):sys.exit(1)
+  src=pathlib.Path(a[3]);shutil.copyfile(src,assets/src.name);m=json.load(open(meta));m['assets'].append({'name':src.name});meta.write_text(json.dumps(m))
+ elif a[:2]==['release','download']:
+  name=a[a.index('--pattern')+1];sys.stdout.buffer.write((assets/name).read_bytes())
+ elif a[:2]==['release','edit']:
+  m=json.load(open(meta));m['draft']=False;meta.write_text(json.dumps(m))
  sys.exit(0)
 if name=='docker':
  if a and a[0]=='info':
@@ -67,7 +98,7 @@ function fixture(t){
  for(const d of ['deploy','app','bin','manager/production_projects','appdir/data'])mkdirSync(join(r,d),{recursive:true});
  const p={name:'fixture',version:'0.1.0'};writeFileSync(join(r,'app/package.json'),JSON.stringify(p));writeFileSync(join(r,'app/package-lock.json'),JSON.stringify({version:p.version,packages:{'':p}}));
  writeFileSync(join(r,'mock.py'),mock);chmodSync(join(r,'mock.py'),0o755);
- for(const n of ['git','npm','docker','curl','nginx','systemctl'])symlinkSync(join(r,'mock.py'),join(r,'bin',n));
+ for(const n of ['git','npm','docker','curl','nginx','systemctl','gh','sudo'])symlinkSync(join(r,'mock.py'),join(r,'bin',n));
  for(const n of ['01-publish-repo.sh','02-update-server.sh']){
   let s=readFileSync(new URL('deploy/'+n,repo),'utf8');
   // Test copies bypass identity checks; every external service is a local stub.
@@ -157,4 +188,65 @@ test('unsupported Node without NVM fails clearly before touching release state o
  const r=fixture(t),home=join(r,'home');mkdirSync(home);
  writeFileSync(join(r,'bin/node'),'#!/usr/bin/env bash\nif [[ "${1:-}" == --version ]]; then echo v18.20.4; fi\nexit 1\n');chmodSync(join(r,'bin/node'),0o755);
  const x=await run(r,'01-publish-repo.sh',['--check-runtime'],{HOME:home,NVM_DIR:join(home,'.nvm')});assert.notEqual(x.code,0);assert.ok(x.out.includes('Brak zgodnego Node'),x.out);assert.ok(x.out.includes('v18.20.4'));assert.equal(existsSync(join(r,'.release')),false);assert.equal(existsSync(join(r,'calls.jsonl')),false);
+});
+
+test('GitHub upload-only publishes an existing package without bump/build and retries without overwriting assets',async t=>{
+ const r=fixture(t);const first=await run(r,'01-publish-repo.sh');assert.equal(first.code,0,first.out);
+ const archive=join(r,'.release','0.1.1-'+COMMIT.slice(0,12)+'.tar.gz');const before=calls(r).length;
+ const retry=await run(r,'01-publish-repo.sh',['--upload-package',archive]);assert.equal(retry.code,0,retry.out);
+ const extra=calls(r).slice(before);assert.ok(!extra.some(c=>['docker','npm'].includes(c[0])&&!(c[0]==='npm'&&c.includes('--version'))));
+ assert.ok(!extra.some(c=>c[0]==='git'&&['commit','push'].includes(c[1])));
+ assert.ok(!extra.some(c=>c[0]==='gh'&&c[1]==='release'&&c[2]==='upload'));
+ const release=JSON.parse(readFileSync(join(r,'github/release.json')));assert.equal(release.draft,false);assert.equal(release.tag_name,'v0.1.1');assert.equal(release.assets.length,3);
+ assert.equal(JSON.parse(readFileSync(join(r,'app/package.json'))).version,'0.1.1');
+ writeFileSync(join(r,'github/assets',archive.split('/').at(-1)),'tampered');
+ const conflict=await run(r,'01-publish-repo.sh',['--upload-package',archive]);assert.notEqual(conflict.code,0);assert.ok(conflict.out.includes('Nie nadpisano'));
+});
+
+test('failed GitHub asset upload keeps a draft and resumes the same archive bytes/version',async t=>{
+ const r=fixture(t);const first=await run(r,'01-publish-repo.sh',[],{FAIL_GITHUB_UPLOAD:'1'});assert.notEqual(first.code,0);
+ assert.equal(JSON.parse(readFileSync(join(r,'github/release.json'))).draft,true);assert.ok(existsSync(join(r,'.release/pending.json')));
+ const path=join(r,'.release','0.1.1-'+COMMIT.slice(0,12)+'.tar.gz'),bytes=readFileSync(path);
+ const retry=await run(r,'01-publish-repo.sh',['--resume'],{REGISTRY_EXISTS:'1'});assert.equal(retry.code,0,retry.out);assert.deepEqual(readFileSync(path),bytes);
+ assert.equal(JSON.parse(readFileSync(join(r,'github/release.json'))).draft,false);assert.equal(existsSync(join(r,'.release/pending.json')),false);
+});
+
+async function githubServerFixture(t){
+ const f=serverFixture(t),bundle=join(f.r,'.release','0.1.1-'+COMMIT.slice(0,12));mkdirSync(bundle,{recursive:true});
+ writeFileSync(join(bundle,'manifest.json'),readFileSync(f.args[0]));writeFileSync(join(bundle,'02-update-server.sh'),readFileSync(join(f.r,'deploy/02-update-server.sh')));
+ const archive=bundle+'.tar.gz';await new Promise((resolve,reject)=>{const p=spawn('tar',['-czf',archive,'-C',join(f.r,'.release'),bundle.split('/').at(-1)]);p.once('error',reject);p.once('exit',c=>c===0?resolve():reject(Error('tar failed')));});
+ const upload=await run(f.r,'01-publish-repo.sh',['--upload-package',archive]);assert.equal(upload.code,0,upload.out);
+ return {...f,archive,downloadArgs:['--release','v0.1.1','--manager-dir',f.args[2]]};
+}
+
+test('server downloads a pinned GitHub release, verifies SHA-256 and deploys without executing the packaged script',async t=>{
+ const f=await githubServerFixture(t);
+ const preflight=await run(f.r,'02-update-server.sh',[...f.downloadArgs,'--check-only']);assert.equal(preflight.code,0,preflight.out);assert.equal(existsSync(join(f.r,'backups')),false);
+ const result=await run(f.r,'02-update-server.sh',f.downloadArgs);assert.equal(result.code,0,result.out);assert.ok(existsSync(join(f.r,'backups')));
+ const log=calls(f.r);assert.ok(log.some(c=>c[0]==='gh'&&c[1]==='release'&&c[2]==='download'&&c.includes('v0.1.1')));
+ assert.ok(readFileSync(f.config,'utf8').includes(COMMIT.slice(0,12)+'@'+DIGEST));
+ assert.equal(readFileSync(join(f.app,'data/rooms.json'),'utf8'),'{"keep":true}');
+});
+
+test('corrupt GitHub asset and latest selection are rejected before stopping the game',async t=>{
+ const f=await githubServerFixture(t),before=readFileSync(f.config,'utf8');
+ writeFileSync(join(f.r,'github/assets',f.archive.split('/').at(-1)),'corrupt');
+ const bad=await run(f.r,'02-update-server.sh',f.downloadArgs);assert.notEqual(bad.code,0);assert.ok(bad.out.includes('SHA-256'),bad.out);assert.equal(readFileSync(f.config,'utf8'),before);assert.equal(existsSync(join(f.r,'backups')),false);
+ const latest=await run(f.r,'02-update-server.sh',['--release','latest']);assert.notEqual(latest.code,0);
+ assert.ok(!calls(f.r).some(c=>c[0]==='docker'&&['pull','stop','start'].includes(c[1])));
+});
+
+
+test('GitHub download under sudo reads credentials as the original operator',async t=>{
+ const f=await githubServerFixture(t),script=join(f.r,'deploy/02-update-server.sh');
+ const source=readFileSync(script,'utf8');const gate='if (( EUID == 0 )) && [[ -n "${SUDO_USER:-}" && "$SUDO_USER" != root ]]; then';
+ assert.ok(source.includes(gate));writeFileSync(script,source.replace(gate,'if [[ -n "${SUDO_USER:-}" && "$SUDO_USER" != root ]]; then'));
+ const x=await run(f.r,'02-update-server.sh',[...f.downloadArgs,'--check-only'],{SUDO_USER:'operator'});assert.equal(x.code,0,x.out);
+ assert.ok(calls(f.r).some(c=>c[0]==='sudo'&&c[1]==='-u'&&c[2]==='operator'&&c[4]==='gh'));assert.equal(existsSync(join(f.r,'backups')),false);
+});
+
+
+test('an existing GitHub tag for another commit cannot be reused or overwritten',async t=>{
+ const r=fixture(t),x=await run(r,'01-publish-repo.sh',[],{CONFLICTING_GITHUB_TAG:'1'});assert.notEqual(x.code,0);assert.ok(x.out.includes('Tag GitHub wskazuje inny commit'),x.out);
+ assert.ok(!calls(r).some(c=>c[0]==='gh'&&c[1]==='release'&&['create','upload','edit'].includes(c[2])));
 });

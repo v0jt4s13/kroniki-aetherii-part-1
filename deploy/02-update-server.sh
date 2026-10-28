@@ -4,6 +4,7 @@ set -Eeuo pipefail
 usage() {
   cat <<'HELP'
 Aktualizacja istniejacej instalacji Kronik na serwerze ops02:
+  sudo ./02-update-server.sh --release v0.1.1 [--manager-dir /opt/apps/projects_manager]
   sudo ./02-update-server.sh ./manifest.json [--manager-dir /opt/apps/projects_manager]
   sudo ./02-update-server.sh ./manifest.json --check-only
 
@@ -11,23 +12,84 @@ Wymaga istniejacej instalacji managera, runtime i kontenera. Weryfikuje obraz,
 robi backup po zatrzymaniu gry, ustawia tag SHA z digestem i naglowki WS,
 wywoluje docker-update oraz sprawdza wersje, SQLite, HTTPS i handshake WS.
 Zachowuje aktualne sekrety i ustawienia glosu; nie instaluje ani nie wlacza TURN.
---check-only wykonuje lokalne kontrole bez pobierania obrazu i bez zmian produkcji.
+--release pobiera pakiet z GitHub i sprawdza SHA-256; uzywa gh operatora sudo.
+--check-only nie pobiera obrazu i nie zmienia produkcji, ale --release pobiera pakiet.
 Nie aktualizuje repo managera przez git pull. Zrob to osobno jako jego wlasciciel.
 HELP
 }
 if [[ "${1:-}" == --help || "${1:-}" == -h ]]; then usage; exit 0; fi
-[[ $# -ge 1 ]] || { usage >&2; exit 2; }
-MANIFEST="$(realpath -- "$1")"; shift
-MANAGER_DIR=/opt/apps/projects_manager; CHECK_ONLY=0
+MANIFEST=''; RELEASE_TAG=''; MANAGER_DIR=/opt/apps/projects_manager; CHECK_ONLY=0
 while (( $# )); do
   case "$1" in
+    --release) [[ $# -ge 2 ]] || exit 2; RELEASE_TAG="$2"; shift 2 ;;
     --manager-dir) [[ $# -ge 2 ]] || exit 2; MANAGER_DIR="$(realpath -- "$2")"; shift 2 ;;
     --check-only) CHECK_ONLY=1; shift ;;
-    *) echo "Nieznany argument: $1" >&2; exit 2 ;;
+    --*) echo "Nieznany argument: $1" >&2; exit 2 ;;
+    *) [[ -z "$MANIFEST" ]] || { echo 'Wskaz jeden manifest.' >&2; exit 2; }; MANIFEST="$(realpath -- "$1")"; shift ;;
   esac
 done
+[[ -n "$MANIFEST" || -n "$RELEASE_TAG" ]] || { usage >&2; exit 2; }
+[[ -z "$MANIFEST" || -z "$RELEASE_TAG" ]] || { echo 'Wybierz manifest albo --release.' >&2; exit 2; }
 (( EUID == 0 )) || { echo 'Na serwerze uruchom przez sudo.' >&2; exit 1; }
 for tool in python3 docker curl nginx flock bash tar; do command -v "$tool" >/dev/null || { echo "Brak: $tool" >&2; exit 1; }; done
+DOWNLOAD_DIR=''
+if [[ -n "$RELEASE_TAG" ]]; then
+  [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Wskaz dokladny tag, np. v0.1.1; latest nie jest obslugiwane.' >&2; exit 2; }
+  command -v gh >/dev/null || { echo 'Zainstaluj GitHub CLI (gh) i zaloguj operatora przez gh auth login.' >&2; exit 1; }
+  gh_read() {
+    # Reuse the sudo operator's existing gh credentials, not root's empty config.
+    if (( EUID == 0 )) && [[ -n "${SUDO_USER:-}" && "$SUDO_USER" != root ]]; then
+      sudo -u "$SUDO_USER" -H gh "$@"
+    else gh "$@"; fi
+  }
+  gh_read auth status --hostname github.com >/dev/null
+  DOWNLOAD_DIR="$(mktemp -d /tmp/aetherii-github-release.XXXXXX)"
+  chmod 700 "$DOWNLOAD_DIR"
+  trap 'rm -rf -- "$DOWNLOAD_DIR"' EXIT
+  GITHUB_REPO=v0jt4s13/kroniki-aetherii-part-1
+  gh_read api "repos/$GITHUB_REPO/releases/tags/$RELEASE_TAG" > "$DOWNLOAD_DIR/release.json"
+  ASSET="$(python3 - "$DOWNLOAD_DIR/release.json" "$RELEASE_TAG" <<'PYCODE'
+import json,re,sys
+r=json.load(open(sys.argv[1]));tag=sys.argv[2]
+if r['tag_name']!=tag or r['draft']:raise SystemExit('Wydanie jest niezgodne lub nadal jest szkicem')
+names=[a['name'] for a in r['assets']]
+pattern=re.escape(tag[1:])+r'-[a-f0-9]{12}\.tar\.gz'
+archives=[n for n in names if re.fullmatch(pattern,n)]
+if len(archives)!=1 or names.count(archives[0]+'.sha256')!=1:raise SystemExit('Brak jednoznacznego pakietu i sumy SHA-256')
+print(archives[0])
+PYCODE
+)"
+  [[ "$ASSET" =~ ^[0-9]+\.[0-9]+\.[0-9]+-[a-f0-9]{12}\.tar\.gz$ ]] || exit 1
+  gh_read release download "$RELEASE_TAG" --repo "$GITHUB_REPO" --pattern "$ASSET" --output - > "$DOWNLOAD_DIR/$ASSET"
+  gh_read release download "$RELEASE_TAG" --repo "$GITHUB_REPO" --pattern "$ASSET.sha256" --output - > "$DOWNLOAD_DIR/$ASSET.sha256"
+  python3 - "$DOWNLOAD_DIR" "$ASSET" "$RELEASE_TAG" <<'PYCODE'
+import hashlib,json,re,sys,tarfile
+from pathlib import Path
+root=Path(sys.argv[1]);name=sys.argv[2];release=sys.argv[3];checks={}
+for line in (root/(name+'.sha256')).read_text().splitlines():
+    match=re.fullmatch(r'([a-f0-9]{64})  (.+)',line)
+    if not match or match[2] not in [name,'02-update-server.sh'] or match[2] in checks:raise SystemExit('Nieprawidlowy plik sum kontrolnych')
+    checks[match[2]]=match[1]
+if name not in checks or hashlib.sha256((root/name).read_bytes()).hexdigest()!=checks[name]:raise SystemExit('Suma SHA-256 pakietu nie zgadza sie')
+prefix=name[:-7];allowed={prefix,prefix+'/manifest.json',prefix+'/02-update-server.sh'}
+with tarfile.open(root/name,'r:gz') as archive:
+    members=archive.getmembers();names=[m.name.rstrip('/') for m in members]
+    if len(names)!=len(set(names)) or any(m.name.rstrip('/') not in allowed or not(m.isfile() or m.isdir()) or m.size>1048576 for m in members):raise SystemExit('Niebezpieczna lub nieoczekiwana zawartosc archiwum')
+    files={m.name:m for m in members if m.isfile()}
+    if set(files)!={prefix+'/manifest.json',prefix+'/02-update-server.sh'}:raise SystemExit('Niekompletny pakiet')
+    if files[prefix+'/manifest.json'].size>16384:raise SystemExit('Za duzy manifest')
+    manifest=archive.extractfile(files[prefix+'/manifest.json']).read();m=json.loads(manifest)
+    if 'v'+str(m.get('version'))!=release or prefix!=str(m.get('version'))+'-'+str(m.get('tag')):raise SystemExit('Wersja pakietu nie odpowiada GitHub Release')
+    (root/'manifest.json').write_bytes(manifest)
+# Do not execute the downloaded script. Deployment uses this already running updater.
+PYCODE
+  MANIFEST="$DOWNLOAD_DIR/manifest.json"
+  REMOTE_COMMIT="$(gh_read api "repos/$GITHUB_REPO/commits/tags/$RELEASE_TAG" --jq .sha)"
+  python3 - "$MANIFEST" "$REMOTE_COMMIT" <<'PYCODE'
+import json,sys
+assert json.load(open(sys.argv[1]))['commit']==sys.argv[2], 'Tag GitHub wskazuje inny commit niz manifest'
+PYCODE
+fi
 CONFIG="$MANAGER_DIR/production_projects/kroniki-aetherii.env"
 MANAGER="$MANAGER_DIR/production_manager.sh"
 [[ -f "$CONFIG" && -f "$MANAGER" && -f "$MANIFEST" ]] || { echo 'Brak manifestu lub instalacji managera.' >&2; exit 1; }
