@@ -443,3 +443,14 @@ svg.port-icon { fill:none; stroke:#2f5d7a; stroke-width:1.8; stroke-linecap:roun
 .chat-composer textarea::placeholder { color:var(--chat-soft); opacity:1; }
 .communication-panel ::selection { background:#6d2434; color:#fff5df; }
 .chat-announcement { display:block; min-height:1.5em; color:var(--chat-soft); font-size:14px; }
+
+/* Language choice shares the game's existing theme and remains available in a room. */
+.account-bar { flex-wrap: wrap; }
+.language-switch { display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; color: inherit; }
+.language-switch select { min-height: 36px; max-width: 126px; padding: 5px 7px; border: 1px solid currentColor; border-radius: 8px; background: var(--paper, #f5eddb); color: inherit; font: inherit; cursor: pointer; }
+.language-label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.language-switch select:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+/* Longer translated titles must fit the real viewport and the phone preview. */
+html:is(:lang(en), :lang(cs)) .game-header { container-type: inline-size; }
+html:is(:lang(en), :lang(cs)) .aetherii-game .brand h1 { font-size: clamp(23px, 7.5cqw, 40px); white-space: normal; }
+html:is(:lang(en), :lang(cs)) .aetherii-game .room-tools { top: auto; bottom: 4px; }

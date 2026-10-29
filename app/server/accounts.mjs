@@ -1,3 +1,4 @@
+import { message, source, LocalizedError } from '../i18n/server.mjs';
 import { publicBasePath } from './base-path.mjs';
 import { randomBytes, randomUUID, createHash, scrypt, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
@@ -38,7 +39,7 @@ export function createAccounts(path, config = process.env, onLogin = () => {}) {
     const ip = req.socket.remoteAddress, now = Date.now();
     const a = attempts.get(ip);
     if (!a || now > a.until) attempts.set(ip, { count: 1, until: now + 60000 });
-    else if (++a.count > 10) fail('Za dużo prób logowania. Spróbuj za minutę.', 429);
+    else if (++a.count > 10) fail(source("errors.too_many_sign_in_attempts_try_again_in_a_minute"), 429);
     if (attempts.size > 1000) for (const [key, entry] of attempts) if (entry.until < now) attempts.delete(key);
   }
   return {
@@ -46,19 +47,19 @@ export function createAccounts(path, config = process.env, onLogin = () => {}) {
     async register(req, res, body) {
       throttle(req);
       const email = emailOf(body.email), name = typeof body.name === 'string' ? body.name.trim() : '';
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) fail('Podaj poprawny adres e-mail.');
-      if (!name || name.length > 24) fail('Podaj imię (1–24 znaki).');
-      if (typeof body.password !== 'string' || body.password.length < 10 || body.password.length > 128) fail('Hasło musi mieć 10–128 znaków.');
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) fail(source("errors.enter_a_valid_email_address"));
+      if (!name || name.length > 24) fail(source("errors.enter_a_name_1_24_characters"));
+      if (typeof body.password !== 'string' || body.password.length < 10 || body.password.length > 128) fail(source("errors.password_must_have_10_128_characters"));
       const salt = randomBytes(16).toString('hex'), hash = (await derive(body.password, salt, 64)).toString('hex');
-      if (db.users.some(u => u.email === email)) fail('Ten adres ma już konto. Zaloguj się.');
+      if (db.users.some(u => u.email === email)) fail(source("errors.this_address_already_has_an_account_sign_in"));
       const u = { id: randomUUID(), name, email, salt, hash }; db.users.push(u); issue(req, res, u); return u;
     },
     async login(req, res, body) {
       throttle(req);
-      if (typeof body.password !== 'string' || body.password.length > 128) fail('Nieprawidłowy e-mail lub hasło.', 401);
+      if (typeof body.password !== 'string' || body.password.length > 128) fail(source("errors.incorrect_email_or_password"), 401);
       const u = db.users.find(u => u.email === emailOf(body.email));
       const computed = await derive(body.password, u?.salt || 'missing-account', 64);
-      if (!u?.hash || !timingSafeEqual(computed, Buffer.from(u.hash, 'hex'))) fail('Nieprawidłowy e-mail lub hasło.', 401);
+      if (!u?.hash || !timingSafeEqual(computed, Buffer.from(u.hash, 'hex'))) fail(source("errors.incorrect_email_or_password"), 401);
       issue(req, res, u); return u;
     },
     logout(req, res) {
@@ -66,7 +67,7 @@ export function createAccounts(path, config = process.env, onLogin = () => {}) {
       save(); res.setHeader('Set-Cookie', cookie('aetherii_session', '', 0));
     },
     googleStart(req, res, url) {
-      if (!google) fail('Logowanie Google wymaga konfiguracji serwera.', 503);
+      if (!google) fail(source("errors.google_sign_in_requires_server_configuration"), 503);
       throttle(req);
       for (const [id, p] of pending) if (p.expires < Date.now()) pending.delete(id);
       const state = randomBytes(32).toString('hex'), verifier = randomBytes(32).toString('base64url'), nonce = randomBytes(32).toString('hex');
@@ -76,22 +77,22 @@ export function createAccounts(path, config = process.env, onLogin = () => {}) {
       res.writeHead(302, { Location: google.generateAuthUrl({ scope: ['openid', 'email', 'profile'], state, nonce, code_challenge: createHash('sha256').update(verifier).digest('base64url'), code_challenge_method: 'S256', prompt: 'select_account' }), 'Cache-Control': 'no-store' }); res.end();
     },
     async googleFinish(req, res, url) {
-      if (!google) fail('Logowanie Google wymaga konfiguracji serwera.', 503);
+      if (!google) fail(source("errors.google_sign_in_requires_server_configuration"), 503);
       const state = url.searchParams.get('state'), p = pending.get(state);
-      if (!p || p.expires < Date.now() || cookies(req).aetherii_oauth !== state) fail('Sesja Google wygasła. Rozpocznij logowanie ponownie.');
+      if (!p || p.expires < Date.now() || cookies(req).aetherii_oauth !== state) fail(source("errors.google_session_expired_start_signing_in_again"));
       pending.delete(state);
       const returnTo = p.room ? `${home}?room=${p.room}` : home;
       if (url.searchParams.has('error')) { res.writeHead(302, { Location: `${returnTo}${p.room ? '&' : '?'}auth=cancelled`, 'Set-Cookie': cookie('aetherii_oauth', '', 0) }); res.end(); return; }
-      const code = url.searchParams.get('code'); if (!code) fail('Brak kodu logowania Google.');
+      const code = url.searchParams.get('code'); if (!code) fail(source("errors.missing_google_sign_in_code"));
       const { tokens } = await google.getToken({ code, codeVerifier: p.verifier });
       const ticket = await google.verifyIdToken({ idToken: tokens.id_token, audience: config.GOOGLE_CLIENT_ID });
       const claims = ticket.getPayload();
-      if (!claims?.sub || !claims.email_verified || claims.nonce !== p.nonce) fail('Google nie potwierdziło tożsamości konta.', 401);
+      if (!claims?.sub || !claims.email_verified || claims.nonce !== p.nonce) fail(source("errors.google_did_not_verify_the_account_identity"), 401);
       let u = db.users.find(u => u.googleId === claims.sub);
       if (p.linkUserId) {
         const current = session(req);
-        if (current?.id !== p.linkUserId) fail('Zaloguj się ponownie przed połączeniem z Google.', 401);
-        if (u && u.id !== current.id) fail('To konto Google jest już połączone z innym graczem.');
+        if (current?.id !== p.linkUserId) fail(source("errors.sign_in_again_before_linking_google"), 401);
+        if (u && u.id !== current.id) fail(source("errors.this_google_account_is_already_linked_to_another_player"));
         current.googleId = claims.sub; u = current;
       }
       // Never link a password account using an unverified local email alone.

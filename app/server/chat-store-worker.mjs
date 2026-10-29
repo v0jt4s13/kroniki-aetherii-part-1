@@ -1,3 +1,4 @@
+import { message as localizedMessage, LocalizedError } from '../i18n/server.mjs';
 import { parentPort, workerData } from 'node:worker_threads';
 import { existsSync, readFileSync, openSync, writeFileSync, fsyncSync, closeSync, renameSync } from 'node:fs';
 import initSqlJs from 'sql.js';
@@ -30,11 +31,11 @@ parentPort.on('message', ({id,op,args:a}) => {
       const unreadCount=rows('SELECT COUNT(*) AS n FROM messages WHERE room=? AND sequence>? AND player<>?',[a.room,lastRead,a.player])[0].n;
       result={unreadCount,version:v,messages:all.slice(0,50).reverse().map(message),hasMore:all.length>50,cursor:latest,lastRead:rows('SELECT sequence FROM reads WHERE room=? AND player=?',[a.room,a.player])[0]?.sequence||0};
     } else if(op==='send') {
-      if(a.version!==v) throw Error('Historia została wyczyszczona. Odśwież rozmowę.');
+      if(a.version!==v) throw new LocalizedError(localizedMessage("errors.history_was_cleared_refresh_the_chat"));
       let r=rows('SELECT * FROM messages WHERE room=? AND player=? AND client=?',[a.room,a.player,a.client])[0];
       const duplicate=Boolean(r);
       if(!r) {
-        if(rows('SELECT COUNT(*) AS n FROM messages')[0].n>=100000) throw Error('Historia jest pełna. Gospodarz może ją wyczyścić.');
+        if(rows('SELECT COUNT(*) AS n FROM messages')[0].n>=100000) throw new LocalizedError(localizedMessage("errors.history_is_full_the_host_can_clear_it"));
         db.run('INSERT INTO messages(room,player,id,created,text,client,version) VALUES (?,?,?,?,?,?,?)',[a.room,a.player,a.id,Date.now(),a.text,a.client,v]);
         r=rows('SELECT * FROM messages WHERE room=? AND player=? AND client=?',[a.room,a.player,a.client])[0];
       }
@@ -44,7 +45,7 @@ parentPort.on('message', ({id,op,args:a}) => {
       db.run('INSERT INTO reads VALUES (?,?,?) ON CONFLICT(room,player) DO UPDATE SET sequence=MAX(sequence,excluded.sequence)',[a.room,a.player,Math.min(a.sequence,max)]); const lastRead=rows('SELECT sequence FROM reads WHERE room=? AND player=?',[a.room,a.player])[0].sequence;result={sequence:lastRead,unreadCount:rows('SELECT COUNT(*) AS n FROM messages WHERE room=? AND sequence>? AND player<>?',[a.room,lastRead,a.player])[0].n};
     } else if(op==='clear') {
       db.run('DELETE FROM messages WHERE room=?',[a.room]); db.run('UPDATE rooms SET version=version+1 WHERE room=?',[a.room]); db.run('DELETE FROM reads WHERE room=?',[a.room]); result={version:v+1};
-    } else throw Error('Nieznana operacja.');
+    } else throw new LocalizedError(localizedMessage("errors.unknown_operation"));
     persist(); parentPort.postMessage({id,result});
   } catch(e) { db.close(); db=new SQL.Database(backup); parentPort.postMessage({id,error:e.message}); }
 });

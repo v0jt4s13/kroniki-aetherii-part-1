@@ -2,6 +2,8 @@
 
 ## Game preferences
 
+- Maintain static Polish, English and Czech dictionaries together in `app/i18n/`; never translate player content or call a translation service at runtime. Keep message keys and parameters aligned, preserve saved language choice, and use domain defaults from the locale registry. See `docs/jezyki.md` for extending languages.
+
 - Display the package version beside the close button in the rules panel. Release it through `deploy/01-publish-repo.sh`, which increments the version; the server updater consumes its manifest. Keep this display synchronized with `app/package.json`, not the engine rules version.
 
 - Private player communication requirements: each participant can mute another participant's audio only for themselves. Support push-to-talk by holding a “Mic” button and an explicitly enabled continuous microphone mode while using chat. Extend invitations to support logged-in players and account-owned game recovery. The implementation and TURN setup are documented in `docs/komunikacja-graczy.md` at the repository root. Closing chat disables microphone transmission while preserving listening; reconnect never resumes transmission automatically.

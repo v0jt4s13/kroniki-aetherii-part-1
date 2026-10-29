@@ -1,3 +1,4 @@
+import { message, source, LocalizedError } from '../i18n/server.mjs';
 import { createHash, randomBytes } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync, renameSync } from 'node:fs';
 import { publicBasePath } from './base-path.mjs';
@@ -9,7 +10,7 @@ const MAX_GAP_MS = 45000;
 // Only random browser-token digests, event types, times and durations enter this file.
 export function createTraffic(path, { config = process.env, now = Date.now, intervalMs = 15000 } = {}) {
   const events = existsSync(path) ? JSON.parse(readFileSync(path, 'utf8')).events : [];
-  if (!Array.isArray(events)) throw new Error('Nieprawidłowy plik statystyk.');
+  if (!Array.isArray(events)) throw new LocalizedError(message("errors.invalid_statistics_file"));
   const live = new Map();
   let dirty = true;
   const cookiePath = publicBasePath(config) + '/';
@@ -48,7 +49,7 @@ export function createTraffic(path, { config = process.env, now = Date.now, inte
   };
   const pulse = (req, res, body) => {
     if (!body || !['visit', 'pulse', 'leave'].includes(body.type) || typeof body.tab !== 'string' || !/^[a-zA-Z0-9-]{16,64}$/.test(body.tab)) {
-      throw new Error('Nieprawidłowy pomiar aktywności.');
+      throw new LocalizedError(message("errors.invalid_activity_measurement"));
     }
     prune();
     const id = visitor(req, res), at = now();

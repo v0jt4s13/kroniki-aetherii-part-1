@@ -1,0 +1,11 @@
+import pl from './pl.json';
+export type Locale = 'pl' | 'en' | 'cs';
+export type MessageKey = keyof typeof pl;
+export type Message = { key: string; args?: readonly unknown[] };
+export const locales: Record<Locale, { name: string; region: string; domains: string[] }>;
+export const catalogs: Record<Locale, Record<MessageKey, string>>;
+export const LANGUAGE_STORAGE_KEY: string;
+export function isLocale(value: unknown): value is Locale;
+export function chooseLocale(options?: { saved?: unknown; hostname?: string; languages?: readonly string[] }): Locale;
+export function translate(locale: Locale, key: string, args?: readonly unknown[]): string;
+export function translateSystemText(locale: Locale, text: string): string;

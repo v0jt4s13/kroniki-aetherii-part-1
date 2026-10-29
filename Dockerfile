@@ -10,6 +10,7 @@ ENV NODE_ENV=production HOST=0.0.0.0 PORT=4173 AETHERII_DATA_DIR=/data
 WORKDIR /app
 COPY --from=build /app/dist/client ./dist/client
 COPY --from=build /app/server ./server
+COPY --from=build /app/i18n ./i18n
 COPY --from=build /app/package*.json ./
 RUN npm ci --omit=dev --ignore-scripts --no-audit --no-fund
 RUN mkdir -p /data && chown node:node /data

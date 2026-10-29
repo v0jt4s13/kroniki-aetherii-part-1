@@ -1,3 +1,4 @@
+import { tr } from './i18n';
 import { appPath } from './app-path';
 import RaidEffects from './RaidEffects';
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
@@ -69,11 +70,11 @@ export default function Board({ state, mode, choose, preview = false }: { state:
         if (!expanded && x > 435 && y > 310) x = 435;
         return { x, y };
   };
-  return <div className={`board-viewport${state.board.tiles.length > 19 ? ' expanded-board' : ''}`} ref={el} data-scroll-drag="ignore" aria-label="Plansza Kroniki Aetherii. Przesuń jednym palcem, powiększ dwoma." onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onWheel={e => { if (e.ctrlKey || e.metaKey) setZoom(z => clamp(z - e.deltaY * 0.003)); }}>
+  return <div className={`board-viewport${state.board.tiles.length > 19 ? ' expanded-board' : ''}`} ref={el} data-scroll-drag="ignore" aria-label={tr("ui.chronicles_of_aetheria_board_drag_with_one_finger_pinch_with_two")} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onWheel={e => { if (e.ctrlKey || e.metaKey) setZoom(z => clamp(z - e.deltaY * 0.003)); }}>
     <div className="board-world" ref={world} style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }}>
-      {state.board.tiles.map(t => <button key={t.id} type="button" className={`hex-tile ${mode === 'robber' && legal.robber.includes(t.id) ? 'selectable' : ''}`} style={{ left: `${t.x / 540 * 100}%`, top: `${t.y / 500 * 100}%`, width: `${Math.sqrt(3) * (state.board.hexRadius || 48) / 540 * 100}%` }} aria-label={`${t.resource === 'desert' ? 'Pustkowie (puste pole)' : labels[t.resource]}, ${t.number || 'brak produkcji'}${t.id === state.robber ? ', złodziej' : ''}`} onClick={() => mode === 'robber' && legal.robber.includes(t.id) && select('robber', t.id)} tabIndex={mode === 'robber' && legal.robber.includes(t.id) ? 0 : -1}>
+      {state.board.tiles.map(t => <button key={t.id} type="button" className={`hex-tile ${mode === 'robber' && legal.robber.includes(t.id) ? 'selectable' : ''}`} style={{ left: `${t.x / 540 * 100}%`, top: `${t.y / 500 * 100}%`, width: `${Math.sqrt(3) * (state.board.hexRadius || 48) / 540 * 100}%` }} aria-label={`${t.resource === 'desert' ? tr("ui.wasteland_empty_tile") : labels[t.resource]}, ${t.number || tr("ui.no_production")}${t.id === state.robber ? tr("ui.robber") : ''}`} onClick={() => mode === 'robber' && legal.robber.includes(t.id) && select('robber', t.id)} tabIndex={mode === 'robber' && legal.robber.includes(t.id) ? 0 : -1}>
         <img src={appPath(`/game/aetherii/${t.resource === 'wood' ? 'forest' : t.resource}.webp`)} alt="" draggable={false}/>
-        {t.number > 0 && <span className={`number-token ${[6, 8].includes(t.number) ? 'frequent' : ''}`} title={`Szansa na sumę ${t.number}: ${6 - Math.abs(7 - t.number)}/36`}>{t.number}<small>{'•'.repeat(6 - Math.abs(7 - t.number))}</small></span>}
+        {t.number > 0 && <span className={`number-token ${[6, 8].includes(t.number) ? 'frequent' : ''}`} title={tr("ui.chance_of_rolling_0_1_36", [t.number, 6 - Math.abs(7 - t.number)])}>{t.number}<small>{'•'.repeat(6 - Math.abs(7 - t.number))}</small></span>}
         {t.id === state.robber && !preview && <span className="robber-piece"><PersonIcon/></span>}
       </button>)}
       <svg className="port-piers" viewBox="0 0 540 500" aria-hidden="true">{state.board.ports.map(port => {
@@ -84,28 +85,28 @@ export default function Board({ state, mode, choose, preview = false }: { state:
       })}</svg>
       {state.board.ports.map(port => {
         const { x, y } = portSpot(port);
-        return <span key={port.id} className={`port${port.type === 'any' ? ' port-any' : ''}`} style={{ left: `${x / 540 * 100}%`, top: `${y / 500 * 100}%` }} title={port.type === 'any' ? 'Port uniwersalny 3:1' : `Port ${labels[port.type]} 2:1`}>{port.type === 'any' ? <svg className="port-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v13M12 4l7 9h-7M12 6L6 13h6M3 17c3 3 6 3 9 0 3 3 6 3 9 0v3c-3 3-6 3-9 0-3 3-6 3-9 0z"/></svg> : <img className="port-icon" src={appPath(`/game/aetherii/icon-${port.type}.webp`)} alt="" draggable={false}/>}<b>{port.type === 'any' ? '3:1' : '2:1'}</b>{port.type !== 'any' && <small>{shortLabels[port.type]}</small>}</span>;
+        return <span key={port.id} className={`port${port.type === 'any' ? ' port-any' : ''}`} style={{ left: `${x / 540 * 100}%`, top: `${y / 500 * 100}%` }} title={port.type === 'any' ? tr("ui.general_port_3_1") : tr("ui.0_port_2_1", [labels[port.type]])}>{port.type === 'any' ? <svg className="port-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v13M12 4l7 9h-7M12 6L6 13h6M3 17c3 3 6 3 9 0 3 3 6 3 9 0v3c-3 3-6 3-9 0-3 3-6 3-9 0z"/></svg> : <img className="port-icon" src={appPath(`/game/aetherii/icon-${port.type}.webp`)} alt="" draggable={false}/>}<b>{port.type === 'any' ? '3:1' : '2:1'}</b>{port.type !== 'any' && <small>{shortLabels[port.type]}</small>}</span>;
       })}
       {state.board.edges.map(e => {
         const a = state.board.vertices[e.a], b = state.board.vertices[e.b];
         const active = mode === 'road' && legal.roads.includes(e.id);
         if (!e.owner && !active) return null;
-        return <button key={e.id} className={`road-piece ${active ? 'legal-road' : ''}`} style={{ left: `${(a.x + b.x) / 2 / 540 * 100}%`, top: `${(a.y + b.y) / 2 / 500 * 100}%`, transform: `translate(-50%,-50%) rotate(${Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI}deg)`, color: color(e.owner) }} aria-label={`Trakt ${e.id}${active ? ', dostępne miejsce' : ''}`} disabled={!active} onClick={() => select('road', e.id)}><MinusIcon/></button>;
+        return <button key={e.id} className={`road-piece ${active ? 'legal-road' : ''}`} style={{ left: `${(a.x + b.x) / 2 / 540 * 100}%`, top: `${(a.y + b.y) / 2 / 500 * 100}%`, transform: `translate(-50%,-50%) rotate(${Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI}deg)`, color: color(e.owner) }} aria-label={tr("ui.trade_route_0_1", [e.id, active ? tr("ui.available_location") : ''])} disabled={!active} onClick={() => select('road', e.id)}><MinusIcon/></button>;
       })}
       {state.board.vertices.map(v => {
         const active = (mode === 'settlement' && legal.settlements.includes(v.id)) || (mode === 'city' && legal.cities.includes(v.id));
         if (!v.owner && !active) return null;
         const owner = state.players.find(p => p.id === v.owner);
         const watchtower = owner && v.level === 1;
-        return <button key={v.id} className={`settlement-piece ${active ? 'legal-vertex' : ''} ${v.owner ? 'occupied' : ''} ${watchtower ? 'watchtower-piece' : ''}`} style={{ left: `${v.x / 540 * 100}%`, top: `${v.y / 500 * 100}%`, '--piece-color': color(v.owner) } as CSSProperties} aria-label={`${v.level === 2 ? 'Cytadela' : 'Strażnica'} ${v.id}${owner ? ` · ${owner.name} · ${factions[owner.faction].name}` : ''}${active ? ', dostępne miejsce' : ''}`} disabled={!active} onClick={() => select(mode || 'settlement', v.id)}>{watchtower ? <img className="watchtower-art" src={watchtowerImage(owner.faction)} alt="" draggable={false}/> : v.owner ? <LayersIcon/> : <PlusIcon/>}</button>;
+        return <button key={v.id} className={`settlement-piece ${active ? 'legal-vertex' : ''} ${v.owner ? 'occupied' : ''} ${watchtower ? 'watchtower-piece' : ''}`} style={{ left: `${v.x / 540 * 100}%`, top: `${v.y / 500 * 100}%`, '--piece-color': color(v.owner) } as CSSProperties} aria-label={`${v.level === 2 ? tr("ui.citadel") : tr("ui.watchtower")} ${v.id}${owner ? ` · ${owner.name} · ${factions[owner.faction].name}` : ''}${active ? tr("ui.available_location") : ''}`} disabled={!active} onClick={() => select(mode || 'settlement', v.id)}>{watchtower ? <img className="watchtower-art" src={watchtowerImage(owner.faction)} alt="" draggable={false}/> : v.owner ? <LayersIcon/> : <PlusIcon/>}</button>;
       })}
     </div>
     <RaidEffects state={state} preview={preview}/>
     <div className="zoom-controls" onPointerDown={e => e.stopPropagation()}>
-      <button aria-label="Powiększ planszę" onClick={() => setZoom(z => clamp(z + 0.2))}><PlusIcon/></button>
-      <button aria-label="Pomniejsz planszę" onClick={() => setZoom(z => clamp(z - 0.2))}><MinusIcon/></button>
-      <button aria-label="Wyśrodkuj planszę" onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}><Crosshair2Icon/></button>
+      <button aria-label={tr("ui.zoom_in")} onClick={() => setZoom(z => clamp(z + 0.2))}><PlusIcon/></button>
+      <button aria-label={tr("ui.zoom_out")} onClick={() => setZoom(z => clamp(z - 0.2))}><MinusIcon/></button>
+      <button aria-label={tr("ui.center_the_board")} onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}><Crosshair2Icon/></button>
     </div>
-    {mode && <div className="board-instruction">{mode === 'road' ? 'Dotknij podświetlonej krawędzi' : mode === 'robber' ? 'Wybierz teren dla złodzieja' : mode === 'city' ? 'Wybierz swoją Strażnicę' : 'Dotknij wolnego skrzyżowania'}</div>}
+    {mode && <div className="board-instruction">{mode === 'road' ? tr("ui.tap_a_highlighted_edge") : mode === 'robber' ? tr("ui.choose_a_tile_for_the_robber") : mode === 'city' ? tr("ui.choose_your_watchtower") : tr("ui.tap_an_empty_intersection")}</div>}
   </div>;
 }

@@ -9,12 +9,12 @@
     "test:runtime": "playwright test",
     "test:prefix": "npm run build && node --test tests/prefix-api.test.mjs",
     "test:sites": "node --test tests/sites-worker.test.mjs",
-    "predev": "npm run check:runtime",
+    "predev": "npm run check:runtime && npm run check:i18n",
     "dev": "node server/start.mjs",
-    "prebuild": "npm run check:runtime",
+    "prebuild": "npm run check:runtime && npm run check:i18n",
     "build": "tsc && vite build --config vite.game.config.ts && node scripts/prepare-sites-build.mjs",
     "start": "node server/start.mjs --production",
-    "test": "node --test tests/solo-ai.test.mjs tests/runtime-env.test.mjs tests/traffic.test.mjs tests/traffic-api.test.mjs tests/doubles.test.mjs tests/party-api.test.mjs tests/aetherii.test.mjs tests/engine.test.mjs tests/api.test.mjs tests/bot.test.mjs tests/ai-api.test.mjs tests/accounts-api.test.mjs tests/accounts.test.mjs tests/communication-api.test.mjs tests/voice.test.mjs tests/chat-store.test.mjs tests/release-scripts.test.mjs",
+    "test": "node --test tests/solo-ai.test.mjs tests/runtime-env.test.mjs tests/traffic.test.mjs tests/traffic-api.test.mjs tests/doubles.test.mjs tests/party-api.test.mjs tests/aetherii.test.mjs tests/engine.test.mjs tests/api.test.mjs tests/bot.test.mjs tests/ai-api.test.mjs tests/accounts-api.test.mjs tests/accounts.test.mjs tests/communication-api.test.mjs tests/voice.test.mjs tests/chat-store.test.mjs tests/release-scripts.test.mjs tests/i18n.test.mjs",
     "test:raid-browser": "npm run build && node scripts/browser-raid-check.mjs",
     "test:appearance-browser": "npm run build && node scripts/browser-appearance-check.mjs",
     "test:doubles-browser": "node scripts/browser-doubles-check.mjs",
@@ -22,7 +22,8 @@
     "test:aetherii-browser": "node scripts/browser-aetherii-check.mjs",
     "test:ai-browser": "node scripts/browser-ai-check.mjs",
     "test:features-browser": "node scripts/browser-features-check.mjs",
-    "test:browser": "node scripts/browser-check.mjs"
+    "test:browser": "node scripts/browser-check.mjs",
+    "check:i18n": "node scripts/check-i18n.mjs"
   },
   "dependencies": {
     "@fontsource/dm-sans": "^5.3.0",

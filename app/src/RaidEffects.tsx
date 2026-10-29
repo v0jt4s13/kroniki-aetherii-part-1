@@ -1,3 +1,4 @@
+import { tr } from './i18n';
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 import { appPath } from './app-path';
@@ -53,16 +54,16 @@ export default function RaidEffects({ state, preview }: { state: State; preview:
   const resultLayer = result && <div className="battle-result-layer">
       <div className={`battle-outcome battle-outcome--${variant}`} role="status" aria-live="polite" key={`${result.room}:${result.battle.turn}`}>
         <span className="battle-symbol" aria-hidden="true">{result.battle.won ? <CheckCircledIcon/> : <CrossCircledIcon/>}</span>
-        <strong>{result.battle.won ? 'Najazd odparty!' : result.cataclysm ? 'Kataklizm! Aetheria upada' : 'Obrona przełamana'}</strong>
-        <span>Pancerz {result.battle.strength}/{result.battle.required}</span>
-        <small>{result.battle.won ? 'Smok wycofuje się znad wyspy.' : result.cataclysm ? 'Wszyscy obrońcy przegrywają.' : 'Kraina ponosi straty. Odbudujcie obronę.'}</small>
+        <strong>{result.battle.won ? tr("ui.raid_repelled") : result.cataclysm ? tr("ui.cataclysm_aetheria_falls") : tr("ui.defenses_breached")}</strong>
+        <span>{tr("ui.armor")}{' '}{result.battle.strength}/{result.battle.required}</span>
+        <small>{result.battle.won ? tr("ui.the_dragon_retreats_from_the_island") : result.cataclysm ? tr("ui.all_defenders_lose") : tr("ui.the_realm_suffers_losses_rebuild_the_defenses")}</small>
         {result.battle.won && <span className="battle-sparks" aria-hidden="true">{Array.from({ length: 8 }, (_, i) => <i key={i} style={{ '--spark-x': `${Math.cos(i * Math.PI / 4) * 115}px`, '--spark-y': `${Math.sin(i * Math.PI / 4) * 100}px`, '--spark-delay': `${i * 45}ms` } as CSSProperties}/>)}</span>}
       </div>
   </div>;
   const viewport = document.querySelector('.native-game #root');
   return <>
     <div ref={scene} className={`raid-effects raid-effects--${variant}`}>
-      {state.raid && <span className="raid-announcement" role="status">Smok nadlatuje. Przygotujcie obronę!</span>}
+      {state.raid && <span className="raid-announcement" role="status">{tr("ui.the_dragon_approaches_prepare_the_defenses")}</span>}
       {result && <div className={`battle-aura battle-aura--${variant}`} aria-hidden="true"/>}
     </div>
     {flight && createPortal(<div className="raid-flight-layer" data-source="realm-defense">
