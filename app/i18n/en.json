@@ -482,7 +482,7 @@
   "errors.choose_your_faction_before_the_game_starts": "Choose your faction before the game starts.",
   "errors.this_faction_is_already_taken": "This faction is already taken.",
   "errors.only_the_host_can_start_the_game": "Only the host can start the game.",
-  "errors.wait_for_0_human_players": "Wait for {0} human players.",
+  "errors.wait_for_0_human_players": "Human players required: {0}.",
   "errors.ai_players_are_already_in_the_room": "AI players are already in the room.",
   "errors.chronicles_of_aetheria_requires_2_4_players": "Chronicles of Aetheria requires 2–4 players.",
   "errors.each_player_must_have_a_different_faction": "Each player must have a different faction.",
@@ -573,5 +573,11 @@
   "events.0_buys_a_magic_card": "{0} buys a Magic Card.",
   "events.0_plays_a_magic_card": "{0} plays a Magic Card.",
   "events.it_is_0_s_turn": "It is {0}'s turn.",
-  "events.building": "{0}: {1}."
+  "events.building": "{0}: {1}.",
+  "traffic.summary": "Online now: {0}. Unique visitors in the last 30 days: {1}.",
+  "game.raid_status": "Armor: {0} · player turns until battle: {1}.",
+  "game.lobby_summary": "Board: {0} hexes · AI: {1}. The host chooses the settings.",
+  "game.start_with_players": "Start game ({0}/{1})",
+  "game.discard_instruction": "A seven was rolled. You have more than 7 resources. Cards to return: {0}.",
+  "game.discard_selected": "Cards selected: {0} of {1}."
 }

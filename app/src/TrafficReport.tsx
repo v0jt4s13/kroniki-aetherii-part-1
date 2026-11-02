@@ -1,3 +1,4 @@
+import LocalizedText from './LocalizedText';
 import { tr } from './i18n';
 import { useEffect, useState } from 'react';
 import { appPath } from './app-path';
@@ -29,5 +30,5 @@ export default function TrafficReport() {
     window.addEventListener('pagehide', leave);
     return () => { stopped = true; clearTimeout(start); clearInterval(timer); document.removeEventListener('visibilitychange', visibility); window.removeEventListener('pagehide', leave); };
   }, []);
-  return <div className="traffic-report" aria-label={tr("ui.visitor_statistics")} title={tr("ui.approximate_browser_statistics_active_a_visible_tab_within_the_la")}>{report ? <>{tr("ui.currently")}{' '}<strong>{report.online}</strong> {' '}{tr("ui.visitors_in_the_last_30_days")}{' '}<strong>{report.unique30d}</strong> {' '}{tr("ui.unique_visitors")}</> : tr("ui.loading_visitor_statistics")}</div>;
+  return <div className="traffic-report" aria-label={tr("ui.visitor_statistics")} title={tr("ui.approximate_browser_statistics_active_a_visible_tab_within_the_la")}>{report ? <LocalizedText id="traffic.summary" values={[<strong>{report.online}</strong>, <strong>{report.unique30d}</strong>]}/> : tr("ui.loading_visitor_statistics")}</div>;
 }

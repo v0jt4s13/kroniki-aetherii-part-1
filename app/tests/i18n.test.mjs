@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkCatalogs } from '../scripts/check-i18n.mjs';
-import { catalogs, chooseLocale, isLocale, translate, translateSystemText } from '../i18n/core.mjs';
+import { catalogs, chooseLocale, isLocale, messageParts, translate, translateSystemText } from '../i18n/core.mjs';
 import { localizedResponse } from '../i18n/server.mjs';
 import { createRoom, player, act, view } from '../server/engine.mjs';
 
@@ -48,7 +48,7 @@ test('parameterized rule errors and fixed HTTP errors expose stable descriptors 
   g.botCount = 2;
   assert.throws(() => act(g, g.host, 'start'), error => {
     assert.match(error.message, /Poczekaj na 2/);
-    assert.equal(translate('en', error.messageDescriptor.key, error.messageDescriptor.args), 'Wait for 2 human players.');
+    assert.equal(translate('en', error.messageDescriptor.key, error.messageDescriptor.args), 'Human players required: 2.');
     return true;
   });
   const result = localizedResponse({ error: 'Pokój jest pełny.' });
@@ -76,10 +76,12 @@ test('browser language store changes document and labels without reload; storage
       .replace("from '../i18n/core.mjs'", `from '${new URL('../i18n/core.mjs', import.meta.url).href}'`);
     const store = await import('data:text/javascript;base64,' + Buffer.from(code).toString('base64'));
     assert.equal(store.getLocale(), 'en'); assert.equal(document.documentElement.lang, 'en');
+    assert.equal(store.eventText({ text: 'Older server text', message: { key: 'future.event' } }), 'Older server text');
+    assert.equal(store.systemText(store.responseError({ error: 'Older server error', errorMessage: { key: 'future.error' } })), 'Older server error');
     const error = store.responseError({ error: 'Poczekaj na 2 graczy ludzkich.', errorMessage: { key: 'errors.wait_for_0_human_players', args: [2] } });
-    assert.equal(store.systemText(error), 'Wait for 2 human players.');
+    assert.equal(store.systemText(error), 'Human players required: 2.');
     store.setLocale('cs'); assert.equal(storage.get('aetherii:language'), 'cs');
-    assert.equal(store.systemText(error), 'Počkejte na 2 lidských hráčů.');
+    assert.equal(store.systemText(error), 'Požadovaný počet lidských hráčů: 2.');
     assert.equal(store.tr('ui.watchtower'), 'Strážní věž'); assert.equal(store.getRegion(), 'cs-CZ');
     assert.match(document.title, /Kroniky/);
     storage.set('aetherii:language','pl'); events.get('storage')({ key:'aetherii:language' });
@@ -89,5 +91,17 @@ test('browser language store changes document and labels without reload; storage
     store.setLocale('xx'); assert.equal(store.getLocale(), 'en');
   } finally {
     for (const [key, descriptor] of Object.entries(saved)) if (descriptor) Object.defineProperty(globalThis,key,descriptor); else delete globalThis[key];
+  }
+});
+
+test('rich messages preserve argument identity and let translations control the whole sentence', () => {
+  const emphasized = { label: '<b>7</b>' };
+  const parts = messageParts('cs', 'game.discard_instruction', [emphasized]);
+  assert.equal(parts[1], emphasized);
+  assert.equal(parts[0], 'Padla 7. Máte více než 7 surovin. Počet karet k vrácení: ');
+  assert.equal(parts[2], '.');
+  for (const locale of ['pl', 'en', 'cs']) for (const count of [1, 2, 5, 21]) {
+    const text = translate(locale, 'game.discard_selected', [count, 22]);
+    assert.ok(text.includes(String(count))); assert.ok(!/\{\d+\}/.test(text));
   }
 });

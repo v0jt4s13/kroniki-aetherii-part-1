@@ -41,3 +41,11 @@ export function translateSystemText(locale, text) {
   const key = messageKeys.get(text);
   return key ? translate(locale, key) : text;
 }
+
+// Keep rich formatting in React; dictionaries contain text and placeholders only.
+export function messageParts(locale, key, values = []) {
+  return translate(locale, key).split(/(\{\d+\})/g).filter(Boolean).map(part => {
+    const match = part.match(/^\{(\d+)\}$/);
+    return match && Number(match[1]) < values.length ? values[Number(match[1])] : part;
+  });
+}

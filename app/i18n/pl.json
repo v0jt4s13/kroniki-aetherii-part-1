@@ -573,5 +573,11 @@
   "events.0_buys_a_magic_card": "{0} kupuje Kartę Magii.",
   "events.0_plays_a_magic_card": "{0} zagrywa Kartę Magii.",
   "events.it_is_0_s_turn": "Tura gracza {0}.",
-  "events.building": "{0}: {1}."
+  "events.building": "{0}: {1}.",
+  "traffic.summary": "Osoby online: {0}. Unikatowi odwiedzający w ostatnich 30 dniach: {1}.",
+  "game.raid_status": "Pancerz: {0} · liczba tur graczy do bitwy: {1}.",
+  "game.lobby_summary": "Plansza: {0} heksów · SI: {1}. Ustawienia wybiera gospodarz.",
+  "game.start_with_players": "Rozpocznij grę ({0}/{1})",
+  "game.discard_instruction": "Wypadło 7. Masz więcej niż 7 surowców. Liczba kart do zwrotu: {0}.",
+  "game.discard_selected": "Wybrane karty: {0} z {1}."
 }

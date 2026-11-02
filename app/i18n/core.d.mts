@@ -9,3 +9,5 @@ export function isLocale(value: unknown): value is Locale;
 export function chooseLocale(options?: { saved?: unknown; hostname?: string; languages?: readonly string[] }): Locale;
 export function translate(locale: Locale, key: string, args?: readonly unknown[]): string;
 export function translateSystemText(locale: Locale, text: string): string;
+
+export function messageParts<T>(locale: Locale, key: string, values?: readonly T[]): (string | T)[];

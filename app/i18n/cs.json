@@ -482,12 +482,12 @@
   "errors.choose_your_faction_before_the_game_starts": "Frakci vybíráte před zahájením hry.",
   "errors.this_faction_is_already_taken": "Tato frakce je již obsazena.",
   "errors.only_the_host_can_start_the_game": "Hru může zahájit jen hostitel.",
-  "errors.wait_for_0_human_players": "Počkejte na {0} lidských hráčů.",
+  "errors.wait_for_0_human_players": "Požadovaný počet lidských hráčů: {0}.",
   "errors.ai_players_are_already_in_the_room": "Hráči AI již jsou v místnosti.",
   "errors.chronicles_of_aetheria_requires_2_4_players": "Kroniky Aetherie vyžadují 2–4 hráče.",
   "errors.each_player_must_have_a_different_faction": "Každý hráč musí mít jinou frakci.",
   "errors.you_do_not_need_to_discard_cards": "Nemusíte odhazovat karty.",
-  "errors.choose_exactly_0_cards": "Vyberte přesně {0} karet.",
+  "errors.choose_exactly_0_cards": "Přesný počet karet k výběru: {0}.",
   "errors.trading_is_unavailable_now": "Obchodování nyní není dostupné.",
   "errors.this_offer_is_unavailable": "Tato nabídka není dostupná.",
   "errors.the_offer_is_no_longer_backed_by_resources": "Nabídka již není kryta surovinami.",
@@ -573,5 +573,11 @@
   "events.0_buys_a_magic_card": "{0} kupuje Kartu magie.",
   "events.0_plays_a_magic_card": "{0} hraje Kartu magie.",
   "events.it_is_0_s_turn": "Na tahu je {0}.",
-  "events.building": "{0}: {1}."
+  "events.building": "{0}: {1}.",
+  "traffic.summary": "Právě online: {0}. Unikátní návštěvníci za posledních 30 dní: {1}.",
+  "game.raid_status": "Zbroj: {0} · počet tahů hráčů do bitvy: {1}.",
+  "game.lobby_summary": "Plán: {0} hexů · AI: {1}. Nastavení vybírá hostitel.",
+  "game.start_with_players": "Zahájit hru ({0}/{1})",
+  "game.discard_instruction": "Padla 7. Máte více než 7 surovin. Počet karet k vrácení: {0}.",
+  "game.discard_selected": "Vybrané karty: {0} z {1}."
 }
